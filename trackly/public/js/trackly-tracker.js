@@ -1,5 +1,5 @@
 /**
- * Gravity Analytics Click Tracker (Lightweight & GDPR/Consent Compliant)
+ * Trackly Analytics Click Tracker (Lightweight & GDPR/Consent Compliant)
  * Loaded for all visitors. Captures click coordinates normalized to viewport percentages.
  * Respects popular cookie consent plugins and features session-based sampling.
  */
@@ -71,16 +71,16 @@
 	 * Evaluate session-based random sampling
 	 */
 	function isSampled() {
-		const rate = parseInt( window.gravityAnalyticsTrackerData.sampling_rate ) || 100;
+		const rate = parseInt( window.tracklyTrackerData.sampling_rate ) || 100;
 		if ( rate >= 100 ) {
 			return true;
 		}
 
-		let sampled = sessionStorage.getItem('gravity_is_sampled');
+		let sampled = sessionStorage.getItem('trackly_is_sampled');
 		if ( sampled === null ) {
 			const rand = Math.floor( Math.random() * 100 ) + 1;
 			sampled = ( rand <= rate ) ? 'true' : 'false';
-			sessionStorage.setItem('gravity_is_sampled', sampled);
+			sessionStorage.setItem('trackly_is_sampled', sampled);
 		}
 
 		return sampled === 'true';
@@ -89,12 +89,12 @@
 	function initTracker() {
 		document.addEventListener('click', function(e) {
 			// Do not log clicks inside the admin floating bar
-			if ( e.target.closest('#gravity-stats-bar-wrapper') ) {
+			if ( e.target.closest('#trackly-stats-bar-wrapper') ) {
 				return;
 			}
 
 			// Do not log clicks when element selector mode is active
-			if ( window.gravitySelectorModeActive ) {
+			if ( window.tracklySelectorModeActive ) {
 				return;
 			}
 
@@ -115,7 +115,7 @@
 			);
 
 			const clickData = {
-				page_url: window.gravityAnalyticsTrackerData.page_url,
+				page_url: window.tracklyTrackerData.page_url,
 				element_tag: e.target.tagName.toLowerCase(),
 				element_selector: selector,
 				click_x_pct: parseFloat(((e.pageX / docWidth) * 100).toFixed(2)),
@@ -148,7 +148,7 @@
 		clicksQueue = [];
 
 		batch.forEach(function(click) {
-			fetch(window.gravityAnalyticsTrackerData.rest_url + '/record-click', {
+			fetch(window.tracklyTrackerData.rest_url + '/record-click', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -183,7 +183,7 @@
 					className = ( el.getAttribute('class') || '' ).trim();
 				}
 
-				className = className.replace('.gravity-selector-hovered', '');
+				className = className.replace('.trackly-selector-hovered', '');
 				if ( className ) {
 					selector += '.' + className.replace(/\s+/g, '.');
 				}

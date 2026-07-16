@@ -7,9 +7,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Gravity_Analytics_API {
+class Trackly_API {
 
-	private static $token_transient_key = 'g_token'; // Shortened transient key (previously gravity_analytics_access_token)
+	private static $token_transient_key = 'g_token'; // Shortened transient key (previously trackly_access_token)
 
 	/**
 	 * Secure encryption key generation using site salts and unique dynamic secure salt option.
@@ -24,11 +24,11 @@ class Gravity_Analytics_API {
 		}
 		
 		// Load dynamic fallback secure salt generated during activation
-		$fallback_salt = get_option( 'gravity_analytics_secure_salt' );
+		$fallback_salt = get_option( 'trackly_secure_salt' );
 		if ( $fallback_salt ) {
 			$key .= $fallback_salt;
 		} else {
-			$key .= 'gravity-analytics-fallback-key-19028';
+			$key .= 'trackly-fallback-key-19028';
 		}
 		
 		return substr( hash( 'sha256', $key ), 0, 32 ); // 32 bytes for AES-256-CBC
@@ -73,13 +73,13 @@ class Gravity_Analytics_API {
 	 * Check if Demo Mode is enabled.
 	 */
 	public static function is_demo_mode() {
-		$demo = get_option( 'gravity_analytics_demo_mode', 'yes' );
+		$demo = get_option( 'trackly_demo_mode', 'yes' );
 		if ( $demo === 'yes' ) {
 			return true;
 		}
 
-		$credentials_encrypted = get_option( 'gravity_analytics_credentials' );
-		$property_id = get_option( 'gravity_analytics_property_id' );
+		$credentials_encrypted = get_option( 'trackly_credentials' );
+		$property_id = get_option( 'trackly_property_id' );
 		if ( empty( $credentials_encrypted ) || empty( $property_id ) ) {
 			return true;
 		}
@@ -96,15 +96,15 @@ class Gravity_Analytics_API {
 			return $token;
 		}
 
-		$credentials_encrypted = get_option( 'gravity_analytics_credentials' );
+		$credentials_encrypted = get_option( 'trackly_credentials' );
 		if ( empty( $credentials_encrypted ) ) {
-			return new WP_Error( 'no_credentials', __( 'Google Service Account credentials missing.', 'gravity-analytics' ) );
+			return new WP_Error( 'no_credentials', __( 'Google Service Account credentials missing.', 'trackly' ) );
 		}
 
 		$credentials_json = self::decrypt_data( $credentials_encrypted );
 		$creds = json_decode( $credentials_json, true );
 		if ( ! is_array( $creds ) || empty( $creds['private_key'] ) || empty( $creds['client_email'] ) ) {
-			return new WP_Error( 'invalid_credentials', __( 'Invalid Google Service Account JSON structure.', 'gravity-analytics' ) );
+			return new WP_Error( 'invalid_credentials', __( 'Invalid Google Service Account JSON structure.', 'trackly' ) );
 		}
 
 		// Generate JWT
@@ -127,11 +127,11 @@ class Gravity_Analytics_API {
 		$signature = '';
 		$pkey = openssl_pkey_get_private( $creds['private_key'] );
 		if ( ! $pkey ) {
-			return new WP_Error( 'invalid_private_key', __( 'Could not parse private key.', 'gravity-analytics' ) );
+			return new WP_Error( 'invalid_private_key', __( 'Could not parse private key.', 'trackly' ) );
 		}
 
 		if ( ! openssl_sign( $header_payload, $signature, $pkey, 'SHA256' ) ) {
-			return new WP_Error( 'signature_failed', __( 'Failed to sign JWT.', 'gravity-analytics' ) );
+			return new WP_Error( 'signature_failed', __( 'Failed to sign JWT.', 'trackly' ) );
 		}
 
 		$jwt = $header_payload . '.' . self::base64url_encode( $signature );
@@ -150,7 +150,7 @@ class Gravity_Analytics_API {
 
 		$body = json_decode( wp_remote_retrieve_body( $response ), true );
 		if ( empty( $body['access_token'] ) ) {
-			return new WP_Error( 'token_error', isset( $body['error_description'] ) ? $body['error_description'] : __( 'Unknown token error.', 'gravity-analytics' ) );
+			return new WP_Error( 'token_error', isset( $body['error_description'] ) ? $body['error_description'] : __( 'Unknown token error.', 'trackly' ) );
 		}
 
 		$access_token = $body['access_token'];
@@ -180,9 +180,9 @@ class Gravity_Analytics_API {
 			return $result;
 		}
 
-		$property_id = get_option( 'gravity_analytics_property_id' );
+		$property_id = get_option( 'trackly_property_id' );
 		if ( empty( $property_id ) ) {
-			return new WP_Error( 'no_property', __( 'Google Analytics GA4 Property ID missing.', 'gravity-analytics' ) );
+			return new WP_Error( 'no_property', __( 'Google Analytics GA4 Property ID missing.', 'trackly' ) );
 		}
 
 		$access_token = self::get_access_token();
@@ -210,7 +210,7 @@ class Gravity_Analytics_API {
 
 		if ( $status_code !== 200 ) {
 			$error = json_decode( $body, true );
-			$msg = isset( $error['error']['message'] ) ? $error['error']['message'] : __( 'GA4 Batch API Error', 'gravity-analytics' );
+			$msg = isset( $error['error']['message'] ) ? $error['error']['message'] : __( 'GA4 Batch API Error', 'trackly' );
 			return new WP_Error( 'api_error', $msg );
 		}
 
@@ -228,9 +228,9 @@ class Gravity_Analytics_API {
 			return self::generate_mock_report( $request_body );
 		}
 
-		$property_id = get_option( 'gravity_analytics_property_id' );
+		$property_id = get_option( 'trackly_property_id' );
 		if ( empty( $property_id ) ) {
-			return new WP_Error( 'no_property', __( 'Google Analytics GA4 Property ID missing.', 'gravity-analytics' ) );
+			return new WP_Error( 'no_property', __( 'Google Analytics GA4 Property ID missing.', 'trackly' ) );
 		}
 
 		$access_token = self::get_access_token();
@@ -258,7 +258,7 @@ class Gravity_Analytics_API {
 
 		if ( $status_code !== 200 ) {
 			$error = json_decode( $body, true );
-			$msg = isset( $error['error']['message'] ) ? $error['error']['message'] : __( 'GA4 API Error', 'gravity-analytics' );
+			$msg = isset( $error['error']['message'] ) ? $error['error']['message'] : __( 'GA4 API Error', 'trackly' );
 			return new WP_Error( 'api_error', $msg );
 		}
 
@@ -425,7 +425,7 @@ class Gravity_Analytics_API {
 			return rand( 8, 28 );
 		}
 
-		$property_id = get_option( 'gravity_analytics_property_id' );
+		$property_id = get_option( 'trackly_property_id' );
 		if ( empty( $property_id ) ) {
 			return 0;
 		}

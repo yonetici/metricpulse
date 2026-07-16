@@ -1,0 +1,248 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Trackly 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-16 12:00+0300\n"
+"PO-Revision-Date: 2026-07-16 12:05+0300\n"
+"Last-Translator: Trackly Team <team@trackly.io>\n"
+"Language-Team: Turkish\n"
+"Language: tr_TR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.0\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "Google Service Account credentials missing."
+msgstr "Google Hizmet Hesabı kimlik bilgileri eksik."
+
+msgid "Invalid Google Service Account JSON structure."
+msgstr "Geçersiz Google Hizmet Hesabı JSON yapısı."
+
+msgid "Could not parse private key."
+msgstr "Özel anahtar ayrıştırılamadı."
+
+msgid "Failed to sign JWT."
+msgstr "JWT imzalanamadı."
+
+msgid "Unknown token error."
+msgstr "Bilinmeyen jeton hatası."
+
+msgid "Google Analytics GA4 Property ID missing."
+msgstr "Google Analytics GA4 Mülk Kimliği eksik."
+
+msgid "GA4 Batch API Error"
+msgstr "GA4 Toplu API Hatası"
+
+msgid "GA4 API Error"
+msgstr "GA4 API Hatası"
+
+msgid "Invalid JSON format."
+msgstr "Geçersiz JSON formatı."
+
+msgid "Trackly"
+msgstr "Trackly"
+
+msgid "Demo Mode Active"
+msgstr "Demo Modu Aktif"
+
+msgid "GA4 Connected"
+msgstr "GA4 Bağlı"
+
+msgid "GA4 Disconnected"
+msgstr "GA4 Bağlantısı Yok"
+
+msgid "Dashboard"
+msgstr "Gösterge Paneli"
+
+msgid "Settings"
+msgstr "Ayarlar"
+
+msgid "Active Visitors"
+msgstr "Aktif Ziyaretçi"
+
+msgid "Pageviews"
+msgstr "Sayfa Görüntüleme"
+
+msgid "Unique Visitors"
+msgstr "Tekil Ziyaretçiler"
+
+msgid "Bounce Rate (Unengaged)"
+msgstr "Hemen Çıkma Oranı (Etkileşimsiz)"
+
+msgid "Average Session Duration"
+msgstr "Ortalama Oturum Süresi"
+
+msgid "GA4 Data Latency Notice"
+msgstr "GA4 Veri Gecikmesi Bilgilendirmesi"
+
+msgid "Google Analytics 4 (GA4) requires 24-48 hours to process data. Therefore, traffic metrics for yesterday and today may appear lower or incomplete. This latency is temporary."
+msgstr "Google Analytics 4 (GA4) verileri işlemek için 24-48 saat arası gecikmeye ihtiyaç duyar. Bu nedenle dün ve bugüne ait trafik metrikleriniz grafikte düşük veya eksik görünebilir. Bu durum geçicidir."
+
+msgid "Visitor Traffic Trend"
+msgstr "Ziyaretçi Trafik Trendi"
+
+msgid "Last 7 Days"
+msgstr "Son 7 Gün"
+
+msgid "Last 30 Days"
+msgstr "Son 30 Gün"
+
+msgid "Traffic Sources"
+msgstr "Trafik Kaynakları"
+
+msgid "Device Distribution"
+msgstr "Cihaz Dağılımı"
+
+msgid "Top Viewed Pages"
+msgstr "En Çok Görüntülenen Sayfalar"
+
+msgid "Page URL"
+msgstr "Sayfa URL"
+
+msgid "Users"
+msgstr "Kullanıcılar"
+
+msgid "Bounce Rate"
+msgstr "Hemen Çıkma Oranı"
+
+msgid "Avg. Duration"
+msgstr "Ort. Süre"
+
+msgid "Loading..."
+msgstr "Yükleniyor..."
+
+msgid "Google Analytics Integration Settings"
+msgstr "Google Analytics Entegrasyon Ayarları"
+
+msgid "Enable Demo (Mock) Mode"
+msgstr "Demo (Mock) Modu Etkin"
+
+msgid "Keep this enabled to test the plugin with mock data without connecting to Google Analytics."
+msgstr "Google Analytics bağlantısı yapmadan eklentiyi sahte (gerçekçi) verilerle test etmek için bunu aktif tutun."
+
+msgid "GA4 Property ID"
+msgstr "GA4 Property ID (Mülk Kimliği)"
+
+msgid "The numeric Property ID of your Google Analytics property (Can be found in Admin > Property Settings)."
+msgstr "Google Analytics mülkünüzün sayısal Property ID'si (Örn: Yönetici > Mülk Ayarları bölümünden bulabilirsiniz)."
+
+msgid "Service Account JSON Key"
+msgstr "Service Account JSON Anahtarı"
+
+msgid "Paste the contents of the Service Account JSON key file you created in the Google Cloud Console. Make sure to add this service account's email as a Viewer to your GA4 property."
+msgstr "Google Cloud Console'dan oluşturduğunuz Service Account (Hizmet Hesabı) JSON anahtar dosyasının içeriğini buraya yapıştırın. Bu hesabın e-posta adresini GA4 mülkünüze Viewer (Okuyucu) olarak eklemeyi unutmayın."
+
+msgid "Click Sampling Rate"
+msgstr "Tıklama Örnekleme Oranı (Sampling Rate)"
+
+msgid "100% (Record all clicks)"
+msgstr "%100 (Tüm tıklamaları kaydet)"
+
+msgid "50% (Record half of all clicks)"
+msgstr "%50 (Tıklamaların yarısını kaydet)"
+
+msgid "25% (Record a quarter of all clicks)"
+msgstr "%25 (Tıklamaların çeyreğini kaydet)"
+
+msgid "10% (Record only 10% of clicks - Recommended for high traffic sites)"
+msgstr "%10 (Sadece %10'unu kaydet - Büyük siteler için önerilir)"
+
+msgid "For high traffic sites, you can reduce the click tracking frequency to prevent database bloat. Sampling runs on a per-session basis."
+msgstr "Yüksek trafikli sitelerde veritabanının şişmesini önlemek için tıklama takip sıklığını düşürebilirsiniz. Örnekleme session bazlı çalışır."
+
+msgid "Save Settings"
+msgstr "Ayarları Kaydet"
+
+msgid "URL parameter required."
+msgstr "URL parametresi zorunlu."
+
+msgid "Hide"
+msgstr "Gizle"
+
+msgid "Statistics"
+msgstr "İstatistikler"
+
+msgid "Click Heatmap"
+msgstr "Tıklama Haritası"
+
+msgid "Event Builder"
+msgstr "Event Sihirbazı"
+
+msgid "AI Analysis"
+msgstr "AI Analizi"
+
+msgid "This Page:"
+msgstr "Bu Sayfa:"
+
+msgid "Bounce"
+msgstr "Hemen Çıkma"
+
+msgid "Data reflects the average of the last 7 days. Update interval: 1 hour."
+msgstr "Veriler son 7 günün ortalamasını yansıtır. Güncelleme periyodu: 1 saat."
+
+msgid "Local Click Heatmap"
+msgstr "Yerel Tıklama Haritası"
+
+msgid "Visually track the click density of elements on this page."
+msgstr "Kullanıcıların bu sayfada tıkladığı elementlerin yoğunluğunu görsel olarak izleyin."
+
+msgid "Show Heatmap"
+msgstr "Haritayı Göster"
+
+msgid "Clear"
+msgstr "Temizle"
+
+msgid "Recorded Clicks:"
+msgstr "Kayıtlı Tıklama Sayısı:"
+
+msgid "GA4 Event Builder"
+msgstr "GA4 Etkinlik Sihirbazı"
+
+msgid "Create custom GA4 tracking events by selecting buttons or links on the page."
+msgstr "Buton veya bağlantıları tıklayarak GA4 özel izleme kodu oluşturun."
+
+msgid "Start Element Selection"
+msgstr "Element Seçimini Başlat"
+
+msgid "Click the button, then hover over any button/link you wish to track on the page."
+msgstr "Butona bastıktan sonra sitede izlemek istediğiniz herhangi bir buton/linkin üzerine gelin."
+
+msgid "Selected Element:"
+msgstr "Seçilen Element:"
+
+msgid "GA4 Event Name:"
+msgstr "GA4 Etkinlik Adı (Event Name):"
+
+msgid "e.g., cta_button_click"
+msgstr "Örn: cta_button_click"
+
+msgid "Save"
+msgstr "Kaydet"
+
+msgid "Cancel"
+msgstr "Vazgeç"
+
+msgid "AI-Powered Page Analysis"
+msgstr "Yapay Zeka Destekli Sayfa Analizi"
+
+msgid "Content Performance"
+msgstr "İçerik Performansı"
+
+msgid "AI analysis is calculating page statistics..."
+msgstr "Sayfa istatistikleri yüklenirken AI analizi hesaplanıyor..."
+
+msgid "Go to Dashboard"
+msgstr "Kontrol Paneline Git"
+
+msgid "Rate limit exceeded."
+msgstr "İstek limiti aşıldı."
+
+msgid "Invalid click data."
+msgstr "Geçersiz tıklama verisi."
+
+msgid "Selector and Event Name required."
+msgstr "Seçici ve Etkinlik Adı zorunlu."
+
+msgid "Invalid CSS Selector payload."
+msgstr "Geçersiz CSS Seçici verisi."

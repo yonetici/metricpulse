@@ -1,5 +1,5 @@
 /**
- * Gravity Analytics Dashboard Script
+ * Trackly Analytics Dashboard Script
  */
 (function($) {
 	'use strict';
@@ -16,8 +16,8 @@
 		startRealtimePolling();
 
 		// Chart range filters
-		$('.gravity-chart-filter-btn').on('click', function() {
-			$('.gravity-chart-filter-btn').removeClass('active');
+		$('.trackly-chart-filter-btn').on('click', function() {
+			$('.trackly-chart-filter-btn').removeClass('active');
 			$(this).addClass('active');
 			const days = $(this).data('days');
 			loadDashboardData(days);
@@ -28,11 +28,11 @@
 	 * Tab switching mechanism
 	 */
 	function initTabs() {
-		$('.gravity-tab-btn').on('click', function() {
+		$('.trackly-tab-btn').on('click', function() {
 			const target = $(this).data('target');
 			
-			$('.gravity-tab-btn').removeClass('active');
-			$('.gravity-tab-content').removeClass('active');
+			$('.trackly-tab-btn').removeClass('active');
+			$('.trackly-tab-content').removeClass('active');
 
 			$(this).addClass('active');
 			$('#' + target).addClass('active');
@@ -67,7 +67,7 @@
 			series: [],
 			xaxis: { categories: [] },
 			noData: {
-				text: 'Yükleniyor...',
+				text: 'Loading...',
 				align: 'center',
 				verticalAlign: 'middle',
 				style: { color: '#64748b', fontSize: '14px' }
@@ -84,7 +84,7 @@
 			series: [],
 			labels: [],
 			legend: { position: 'bottom' },
-			noData: { text: 'Yükleniyor...' }
+			noData: { text: 'Loading...' }
 		};
 
 		const deviceOptions = {
@@ -97,12 +97,12 @@
 			series: [],
 			labels: [],
 			legend: { position: 'bottom' },
-			noData: { text: 'Yükleniyor...' }
+			noData: { text: 'Loading...' }
 		};
 
-		mainChart = new ApexCharts(document.querySelector("#gravity-main-chart"), mainOptions);
-		sourceChart = new ApexCharts(document.querySelector("#gravity-source-chart"), sourceOptions);
-		deviceChart = new ApexCharts(document.querySelector("#gravity-device-chart"), deviceOptions);
+		mainChart = new ApexCharts(document.querySelector("#trackly-main-chart"), mainOptions);
+		sourceChart = new ApexCharts(document.querySelector("#trackly-source-chart"), sourceOptions);
+		deviceChart = new ApexCharts(document.querySelector("#trackly-device-chart"), deviceOptions);
 
 		mainChart.render();
 		sourceChart.render();
@@ -114,11 +114,11 @@
 	 */
 	function loadDashboardData(days) {
 		$.ajax({
-			url: gravityAnalyticsData.rest_url + '/stats',
+			url: tracklyData.rest_url + '/stats',
 			method: 'GET',
 			data: { days: days },
 			beforeSend: function(xhr) {
-				xhr.setRequestHeader('X-WP-Nonce', gravityAnalyticsData.rest_nonce);
+				xhr.setRequestHeader('X-WP-Nonce', tracklyData.rest_nonce);
 			},
 			success: function(res) {
 				if (res.success) {
@@ -145,10 +145,10 @@
 		// Poll every 20 seconds to lightweight /realtime endpoint
 		realtimeInterval = setInterval(function() {
 			$.ajax({
-				url: gravityAnalyticsData.rest_url + '/realtime',
+				url: tracklyData.rest_url + '/realtime',
 				method: 'GET',
 				beforeSend: function(xhr) {
-					xhr.setRequestHeader('X-WP-Nonce', gravityAnalyticsData.rest_nonce);
+					xhr.setRequestHeader('X-WP-Nonce', tracklyData.rest_nonce);
 				},
 				success: function(res) {
 					if (res.success) {
@@ -160,7 +160,7 @@
 	}
 
 	function updateRealtimeValue(count) {
-		const $counter = $('#gravity-active-users');
+		const $counter = $('#trackly-active-users');
 		// Simple counter increment/decrement animation
 		$counter.fadeOut(150, function() {
 			$(this).text(count).fadeIn(150);
@@ -186,10 +186,10 @@
 		const secs = durSec % 60;
 		const duration = mins + 'd ' + (secs < 10 ? '0' : '') + secs + 's';
 
-		$('#gravity-stat-views').text(views);
-		$('#gravity-stat-users').text(users);
-		$('#gravity-stat-bounce').text(bounce);
-		$('#gravity-stat-duration').text(duration);
+		$('#trackly-stat-views').text(views);
+		$('#trackly-stat-users').text(users);
+		$('#trackly-stat-bounce').text(bounce);
+		$('#trackly-stat-duration').text(duration);
 	}
 
 	/**
@@ -208,7 +208,7 @@
 				const month = rawDate.substring(4, 6);
 				const day = rawDate.substring(6, 8);
 				const dateObj = new Date(year, month - 1, day);
-				const formattedDate = dateObj.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+				const formattedDate = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
 
 				categories.push(formattedDate);
 				viewsSeries.push(parseInt(row.metricValues[0].value));
@@ -221,8 +221,8 @@
 		});
 
 		mainChart.updateSeries([
-			{ name: 'Sayfa Görüntüleme', data: viewsSeries },
-			{ name: 'Kullanıcılar', data: usersSeries }
+			{ name: 'Pageviews', data: viewsSeries },
+			{ name: 'Users', data: usersSeries }
 		]);
 	}
 
@@ -257,7 +257,7 @@
 			devicesData.rows.forEach(function(row) {
 				const dev = row.dimensionValues[0].value;
 				// Translate device name
-				const translatedDev = dev === 'desktop' ? 'Masaüstü' : (dev === 'mobile' ? 'Mobil' : 'Tablet');
+				const translatedDev = dev === 'desktop' ? 'Desktop' : (dev === 'mobile' ? 'Mobile' : 'Tablet');
 				labels.push(translatedDev);
 				series.push(parseInt(row.metricValues[0].value));
 			});
@@ -273,11 +273,11 @@
 	 * Render Top Pages table
 	 */
 	function updatePagesTable(pagesData) {
-		const $tbody = $('#gravity-pages-table tbody');
+		const $tbody = $('#trackly-pages-table tbody');
 		$tbody.empty();
 
 		if (!pagesData.rows || pagesData.rows.length === 0) {
-			$tbody.append('<tr><td colspan="5" class="loading-td">Veri bulunamadı.</td></tr>');
+			$tbody.append('<tr><td colspan="5" class="loading-td">No data found.</td></tr>');
 			return;
 		}
 
@@ -294,7 +294,7 @@
 
 			const html = `
 				<tr>
-					<td><a href="${path}" target="_blank" class="gravity-page-link"><code>${path}</code></a></td>
+					<td><a href="${path}" target="_blank" class="trackly-page-link"><code>${path}</code></a></td>
 					<td><strong>${views}</strong></td>
 					<td>${users}</td>
 					<td>${bounce}</td>

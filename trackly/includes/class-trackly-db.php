@@ -7,15 +7,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Gravity_Analytics_DB {
+class Trackly_DB {
 
 	public static function init() {
-		add_action( 'gravity_analytics_daily_cleanup', array( __CLASS__, 'daily_cleanup' ) );
+		add_action( 'trackly_daily_cleanup', array( __CLASS__, 'daily_cleanup' ) );
 	}
 
 	public static function get_table_name() {
 		global $wpdb;
-		return $wpdb->prefix . 'gravity_clicks';
+		return $wpdb->prefix . 'trackly_clicks';
 	}
 
 	/**
@@ -95,8 +95,8 @@ class Gravity_Analytics_DB {
 	 * Schedule the 30-day cleanup cron job.
 	 */
 	public static function schedule_cleanup() {
-		if ( ! wp_next_scheduled( 'gravity_analytics_daily_cleanup' ) ) {
-			wp_schedule_event( time(), 'daily', 'gravity_analytics_daily_cleanup' );
+		if ( ! wp_next_scheduled( 'trackly_daily_cleanup' ) ) {
+			wp_schedule_event( time(), 'daily', 'trackly_daily_cleanup' );
 		}
 	}
 
@@ -104,9 +104,9 @@ class Gravity_Analytics_DB {
 	 * Unschedule cleanup cron job.
 	 */
 	public static function unschedule_cleanup() {
-		$timestamp = wp_next_scheduled( 'gravity_analytics_daily_cleanup' );
+		$timestamp = wp_next_scheduled( 'trackly_daily_cleanup' );
 		if ( $timestamp ) {
-			wp_unschedule_event( $timestamp, 'gravity_analytics_daily_cleanup' );
+			wp_unschedule_event( $timestamp, 'trackly_daily_cleanup' );
 		}
 	}
 

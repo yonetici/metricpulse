@@ -1,10 +1,10 @@
 /**
- * Gravity Analytics Front-End Floating Bar & Overlay Styles
+ * Trackly Analytics Front-End Floating Bar & Overlay Styles
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
 
-#gravity-stats-bar-wrapper {
+#trackly-stats-bar-wrapper {
 	--gp-primary: #8b5cf6;
 	--gp-secondary: #06b6d4;
 	--gp-bg: rgba(15, 23, 42, 0.85);
@@ -24,7 +24,7 @@
 }
 
 /* Floating Toggle Button */
-#gravity-stats-toggle-btn {
+#trackly-stats-toggle-btn {
 	width: 60px;
 	height: 60px;
 	border-radius: 50%;
@@ -39,19 +39,19 @@
 	transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-#gravity-stats-toggle-btn:hover {
+#trackly-stats-toggle-btn:hover {
 	transform: scale(1.1) rotate(5deg);
 	box-shadow: 0 12px 35px rgba(139, 92, 246, 0.6);
 }
 
-#gravity-stats-toggle-btn .dashicons {
+#trackly-stats-toggle-btn .dashicons {
 	font-size: 28px;
 	width: 28px;
 	height: 28px;
 }
 
 /* Panel Container */
-#gravity-stats-panel {
+#trackly-stats-panel {
 	display: none;
 	width: 360px;
 	background: var(--gp-bg);
@@ -70,14 +70,14 @@
 	transform: translateY(20px);
 }
 
-#gravity-stats-panel.active {
+#trackly-stats-panel.active {
 	display: block;
 	opacity: 1;
 	transform: translateY(0);
 }
 
 /* Header */
-.gravity-panel-header {
+.trackly-panel-header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -85,7 +85,7 @@
 	border-bottom: 1px solid var(--gp-border);
 }
 
-.gravity-panel-logo {
+.trackly-panel-logo {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -94,7 +94,7 @@
 	-webkit-text-fill-color: transparent;
 }
 
-.gravity-panel-logo h4 {
+.trackly-panel-logo h4 {
 	margin: 0;
 	font-size: 15px;
 	font-weight: 700;
@@ -102,14 +102,14 @@
 	text-fill-color: initial;
 }
 
-.gravity-panel-logo .dashicons {
+.trackly-panel-logo .dashicons {
 	font-size: 20px;
 	width: 20px;
 	height: 20px;
 	text-fill-color: initial;
 }
 
-#gravity-panel-minimize-btn {
+#trackly-panel-minimize-btn {
 	background: transparent;
 	border: none;
 	color: var(--gp-text-muted);
@@ -118,13 +118,13 @@
 	border-radius: 4px;
 }
 
-#gravity-panel-minimize-btn:hover {
+#trackly-panel-minimize-btn:hover {
 	color: var(--gp-text);
 	background: rgba(255,255,255,0.05);
 }
 
 /* Tabs */
-.gravity-panel-tabs {
+.trackly-panel-tabs {
 	display: flex;
 	background: rgba(0, 0, 0, 0.2);
 	padding: 4px;
@@ -132,7 +132,7 @@
 	border-bottom: 1px solid var(--gp-border);
 }
 
-.gravity-panel-tab {
+.trackly-panel-tab {
 	flex: 1;
 	background: transparent;
 	border: none;
@@ -145,24 +145,24 @@
 	transition: all 0.2s;
 }
 
-.gravity-panel-tab:hover {
+.trackly-panel-tab:hover {
 	color: var(--gp-text);
 }
 
-.gravity-panel-tab.active {
+.trackly-panel-tab.active {
 	background: var(--gp-card-bg);
 	color: var(--gp-text);
 	border: 1px solid rgba(255,255,255,0.05);
 }
 
 /* Content Area */
-.gravity-panel-tab-content {
+.trackly-panel-tab-content {
 	display: none;
 	padding: 20px;
 	min-height: 180px;
 }
 
-.gravity-panel-tab-content.active {
+.trackly-panel-tab-content.active {
 	display: block;
 	animation: panelFadeIn 0.3s ease-out;
 }
@@ -172,14 +172,14 @@
 	to { opacity: 1; transform: scale(1); }
 }
 
-.gravity-url-indicator {
+.trackly-url-indicator {
 	margin-top: 0;
 	margin-bottom: 16px;
 	font-size: 11px;
 	color: var(--gp-text-muted);
 }
 
-.gravity-url-indicator code {
+.trackly-url-indicator code {
 	background: rgba(0,0,0,0.3);
 	color: var(--gp-secondary);
 	padding: 2px 6px;
@@ -188,14 +188,14 @@
 }
 
 /* Metrics Grid */
-.gravity-panel-metrics-grid {
+.trackly-panel-metrics-grid {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 12px;
 	margin-bottom: 16px;
 }
 
-.gravity-panel-metric-card {
+.trackly-panel-metric-card {
 	background: var(--gp-card-bg);
 	border: 1px solid var(--gp-border);
 	border-radius: 12px;
@@ -203,7 +203,7 @@
 	text-align: center;
 }
 
-.gravity-panel-metric-card .label {
+.trackly-panel-metric-card .label {
 	display: block;
 	font-size: 11px;
 	color: var(--gp-text-muted);
@@ -211,13 +211,13 @@
 	margin-bottom: 4px;
 }
 
-.gravity-panel-metric-card h3 {
+.trackly-panel-metric-card h3 {
 	margin: 0;
 	font-size: 18px;
 	font-weight: 700;
 }
 
-.gravity-panel-info-box {
+.trackly-panel-info-box {
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -229,18 +229,18 @@
 	color: #22d3ee;
 }
 
-.gravity-panel-info-box p {
+.trackly-panel-info-box p {
 	margin: 0;
 }
 
 /* Public Buttons */
-.gravity-action-buttons {
+.trackly-action-buttons {
 	display: flex;
 	gap: 10px;
 	margin-top: 14px;
 }
 
-.gravity-p-btn {
+.trackly-p-btn {
 	flex: 1;
 	background: var(--gp-primary);
 	color: white;
@@ -257,25 +257,25 @@
 	gap: 6px;
 }
 
-.gravity-p-btn:hover {
+.trackly-p-btn:hover {
 	background: #7c3aed;
 }
 
-.gravity-p-btn.secondary {
+.trackly-p-btn.secondary {
 	background: rgba(255,255,255,0.08);
 	border: 1px solid var(--gp-border);
 }
 
-.gravity-p-btn.secondary:hover {
+.trackly-p-btn.secondary:hover {
 	background: rgba(255,255,255,0.15);
 }
 
 /* Event Builder Form */
-.gravity-p-form-group {
+.trackly-p-form-group {
 	margin-bottom: 14px;
 }
 
-.gravity-p-form-group label {
+.trackly-p-form-group label {
 	display: block;
 	font-size: 12px;
 	font-weight: 600;
@@ -283,7 +283,7 @@
 	color: var(--gp-text-muted);
 }
 
-.gravity-p-form-group code {
+.trackly-p-form-group code {
 	display: block;
 	background: rgba(0,0,0,0.3);
 	padding: 8px;
@@ -294,7 +294,7 @@
 	border: 1px solid var(--gp-border);
 }
 
-.gravity-p-form-group input {
+.trackly-p-form-group input {
 	width: 100%;
 	padding: 8px 12px;
 	border-radius: 8px;
@@ -305,12 +305,12 @@
 	outline: none;
 }
 
-.gravity-p-form-group input:focus {
+.trackly-p-form-group input:focus {
 	border-color: var(--gp-primary);
 }
 
 /* AI Insights Tab */
-.gravity-ai-container {
+.trackly-ai-container {
 	background: rgba(139, 92, 246, 0.08);
 	border: 1px solid rgba(139, 92, 246, 0.2);
 	border-radius: 12px;
@@ -360,13 +360,13 @@
 }
 
 /* Footer Link */
-.gravity-panel-footer {
+.trackly-panel-footer {
 	border-top: 1px solid var(--gp-border);
 	padding: 12px 20px;
 	text-align: center;
 }
 
-.gravity-panel-footer a {
+.trackly-panel-footer a {
 	color: var(--gp-secondary);
 	font-size: 12px;
 	text-decoration: none;
@@ -376,13 +376,13 @@
 	gap: 6px;
 }
 
-.gravity-panel-footer a:hover {
+.trackly-panel-footer a:hover {
 	color: #22d3ee;
 	text-decoration: underline;
 }
 
 /* Heatmap Dot elements overlay */
-.gravity-heatmap-dot {
+.trackly-heatmap-dot {
 	position: absolute;
 	width: 24px;
 	height: 24px;
@@ -401,7 +401,7 @@
 }
 
 /* Selector Hover Outline Mode */
-.gravity-selector-hovered {
+.trackly-selector-hovered {
 	outline: 2px dashed var(--gp-primary) !important;
 	outline-offset: 2px !important;
 	box-shadow: 0 0 10px rgba(139, 92, 246, 0.5) !important;

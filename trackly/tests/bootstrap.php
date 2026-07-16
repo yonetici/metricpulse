@@ -118,5 +118,24 @@ function wp_json_encode( $data, $options = 0, $depth = 512 ) {
 	return json_encode( $data, $options, $depth );
 }
 
+function wp_next_scheduled( $hook, $args = array() ) {
+	return false;
+}
+function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp_error = false ) {
+	return true;
+}
+function wp_unschedule_event( $timestamp, $hook, $args = array(), $wp_error = false ) {
+	return true;
+}
+function wp_remote_get( $url, $args = array() ) {
+	return array();
+}
+function wp_remote_retrieve_response_code( $response ) {
+	return 200;
+}
+function wp_remote_retrieve_body( $response ) {
+	return '';
+}
+
 // Load PSR-4 Autoloader
 require_once dirname( __DIR__ ) . '/trackly.php';

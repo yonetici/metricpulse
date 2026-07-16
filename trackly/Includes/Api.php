@@ -1,5 +1,5 @@
 <?php
-namespace Trackly;
+namespace Trackly\Includes;
 
 use WP_Error;
 

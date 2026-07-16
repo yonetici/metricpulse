@@ -51,8 +51,8 @@ def main():
     workspace_root = os.path.dirname(script_dir)
 
     targets = [
-        os.path.join(workspace_root, "trackly/admin/css/trackly-admin.css"),
-        os.path.join(workspace_root, "trackly/admin/js/trackly-admin.js"),
+        os.path.join(workspace_root, "trackly/Admin/css/trackly-admin.css"),
+        os.path.join(workspace_root, "trackly/Admin/js/trackly-admin.js"),
         os.path.join(workspace_root, "trackly/public/css/trackly-public.css"),
         os.path.join(workspace_root, "trackly/public/js/trackly-public.js"),
         os.path.join(workspace_root, "trackly/public/js/trackly-tracker.js")

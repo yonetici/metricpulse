@@ -411,7 +411,8 @@
 }
 
 .trackly-form-group input[type="text"],
-.trackly-form-group textarea {
+.trackly-form-group textarea,
+.trackly-form-group select {
 	width: 100%;
 	max-width: 100%;
 	padding: 10px 14px;
@@ -420,6 +421,11 @@
 	background: #ffffff;
 	font-size: 14px;
 	transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.trackly-form-group select {
+	max-width: 25rem;
+	height: 2.5rem;
 }
 
 .trackly-form-group input[type="text"]:focus,

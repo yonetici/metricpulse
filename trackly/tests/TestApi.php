@@ -1,6 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use Trackly\Api;
+use Trackly\Includes\Api;
 
 class TestApi extends TestCase {
 

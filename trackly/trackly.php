@@ -30,16 +30,7 @@ spl_autoload_register( function ( $class ) {
 	}
 
 	$relative_class = substr( $class, $len );
-
-	if ( strpos( $relative_class, '\\' ) === false ) {
-		// Core classes mapped directly to includes/
-		$file = $base_dir . 'includes/' . $relative_class . '.php';
-	} else {
-		// Namespaced sub-classes mapping to lowercase folder names (e.g., Admin\Admin -> admin/Admin.php)
-		$parts = explode( '\\', $relative_class );
-		$parts[0] = strtolower( $parts[0] );
-		$file = $base_dir . implode( '/', $parts ) . '.php';
-	}
+	$file = $base_dir . str_replace( '\\', '/', $relative_class ) . '.php';
 
 	if ( file_exists( $file ) ) {
 		require_once $file;
@@ -49,8 +40,11 @@ spl_autoload_register( function ( $class ) {
 // Activate / Deactivate hooks
 function activate_trackly() {
 	// Trigger DB table creation
-	Trackly\Database::create_tables();
-	Trackly\Database::schedule_cleanup();
+	Trackly\Includes\Database::create_tables();
+	Trackly\Includes\Database::schedule_cleanup();
+	
+	// Fetch and populate Cloudflare proxy subnets immediately on activation
+	Trackly\Includes\Database::refresh_cf_ips();
 
 	// Generate a unique dynamic fallback encryption key if not exists (Enterprise Security)
 	if ( ! get_option( 'trackly_secure_salt' ) ) {
@@ -61,20 +55,14 @@ function activate_trackly() {
 register_activation_hook( __FILE__, 'activate_trackly' );
 
 function deactivate_trackly() {
-	Trackly\Database::unschedule_cleanup();
+	Trackly\Includes\Database::unschedule_cleanup();
 }
 register_deactivation_hook( __FILE__, 'deactivate_trackly' );
 
 // Run the plugin
 function run_trackly() {
-	$plugin = new Trackly\Core();
+	$plugin = new Trackly\Includes\Core();
 	$plugin->run();
 }
-run_trackly();
-
-// Load textdomain for i18n support
-function load_trackly_textdomain() {
-	load_plugin_textdomain( 'trackly', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-}
-add_action( 'init', 'load_trackly_textdomain' );
+add_action( 'plugins_loaded', 'run_trackly' );
 

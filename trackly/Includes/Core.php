@@ -1,5 +1,5 @@
 <?php
-namespace Trackly;
+namespace Trackly\Includes;
 
 use Trackly\Admin\Admin;
 use Trackly\Frontend\Tracker;

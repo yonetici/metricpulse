@@ -78,13 +78,13 @@ trackly/
 
 ---
 
-## 🔒 Kurumsal Güvenlik ve Kriptografi
+## 🔒 Kimlik Bilgisi Güvenliği ve Kriptografi
 
 Trackly, Google Analytics kimlik bilgilerinizi güvenlik en iyi uygulamalarını kullanarak korur:
 
-1.  **AES-256-CBC Gizli Şifreleme:** Google Hizmet Hesabı kimlik bilgileriniz veritabanında saklanmadan önce şifrelenir.
+1.  **AES-256-GCM Gizli Şifreleme:** Google Hizmet Hesabı kimlik bilgileriniz, doğrulanmış GCM yöntemi (kimlik doğrulama etiketleriyle birlikte) kullanılarak veritabanında saklanmadan önce şifrelenir.
 2.  **Dinamik Salt Oluşturma:** Sunucunuzun güvenlik anahtarlarını (`SECURE_AUTH_KEY`, `NONCE_KEY`), aktivasyon sırasında oluşturulan dinamik 64 karakterli benzersiz bir anahtarla (`trackly_secure_salt`) birleştirerek karmaşık bir anahtar oluşturur.
-3.  **Sınırlandırılmış REST API İstek Limiti:** Tıklama kaydetme uç noktası, IP adresi başına dakikada maksimum 10 istek alacak şekilde sınırlandırılmıştır. Bu, veritabanının şişirilmesini ve DDoS girişimlerini engeller.
+3.  **Sınırlandırılmış REST API İstek Limiti:** Tıklama kaydetme uç noktası, istemci IP'si başına dakikada maksimum 10 istek alacak şekilde sınırlandırılmıştır. Bu, veritabanının şişirilmesini ve uç noktanın kötüye kullanılmasını önler.
 4.  **XSS ve Payload Koruması:** Etkinlik Sihirbazı üzerinden oluşturulan özel etkinlikler, CSS seçici alanlarında HTML/script enjeksiyonunu önlemek amacıyla katı bir regex denetiminden geçer.
 
 ---

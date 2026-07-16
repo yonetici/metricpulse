@@ -1,6 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use Trackly\Database;
+use Trackly\Includes\Database;
 
 class TestDatabase extends TestCase {
 

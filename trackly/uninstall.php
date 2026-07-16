@@ -18,6 +18,7 @@ $options = array(
 	'trackly_secure_salt',
 	'trackly_custom_events',
 	'trackly_require_consent',
+	'trackly_cf_proxies',
 );
 
 foreach ( $options as $option ) {

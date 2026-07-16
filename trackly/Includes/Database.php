@@ -1,5 +1,5 @@
 <?php
-namespace Trackly;
+namespace Trackly\Includes;
 
 /**
  * Database and table management class.
@@ -13,6 +13,8 @@ class Database {
 
 	public static function init() {
 		add_action( 'trackly_daily_cleanup', array( __CLASS__, 'daily_cleanup' ) );
+		add_action( 'trackly_weekly_ip_refresh', array( __CLASS__, 'refresh_cf_ips' ) );
+	}
 	}
 
 	public static function get_table_name() {
@@ -99,21 +101,28 @@ class Database {
 	}
 
 	/**
-	 * Schedule the 30-day cleanup cron job.
+	 * Schedule the 30-day cleanup and weekly IP refresh cron jobs.
 	 */
 	public static function schedule_cleanup() {
 		if ( ! wp_next_scheduled( 'trackly_daily_cleanup' ) ) {
 			wp_schedule_event( time(), 'daily', 'trackly_daily_cleanup' );
 		}
+		if ( ! wp_next_scheduled( 'trackly_weekly_ip_refresh' ) ) {
+			wp_schedule_event( time(), 'weekly', 'trackly_weekly_ip_refresh' );
+		}
 	}
 
 	/**
-	 * Unschedule cleanup cron job.
+	 * Unschedule cleanup and IP refresh cron jobs.
 	 */
 	public static function unschedule_cleanup() {
 		$timestamp = wp_next_scheduled( 'trackly_daily_cleanup' );
 		if ( $timestamp ) {
 			wp_unschedule_event( $timestamp, 'trackly_daily_cleanup' );
+		}
+		$weekly_timestamp = wp_next_scheduled( 'trackly_weekly_ip_refresh' );
+		if ( $weekly_timestamp ) {
+			wp_unschedule_event( $weekly_timestamp, 'trackly_weekly_ip_refresh' );
 		}
 	}
 
@@ -125,5 +134,37 @@ class Database {
 		$table_name = self::get_table_name();
 		
 		$wpdb->query( "DELETE FROM $table_name WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)" );
+	}
+
+	/**
+	 * Dynamic weekly Cloudflare IP subnet ranges refresh from Cloudflare APIs.
+	 */
+	public static function refresh_cf_ips() {
+		$v4 = wp_remote_get( 'https://www.cloudflare.com/ips-v4' );
+		$v6 = wp_remote_get( 'https://www.cloudflare.com/ips-v6' );
+
+		$ips = array();
+		if ( ! is_wp_error( $v4 ) && 200 === wp_remote_retrieve_response_code( $v4 ) ) {
+			$lines = explode( "\n", wp_remote_retrieve_body( $v4 ) );
+			foreach ( $lines as $line ) {
+				$line = trim( $line );
+				if ( ! empty( $line ) ) {
+					$ips[] = $line;
+				}
+			}
+		}
+		if ( ! is_wp_error( $v6 ) && 200 === wp_remote_retrieve_response_code( $v6 ) ) {
+			$lines = explode( "\n", wp_remote_retrieve_body( $v6 ) );
+			foreach ( $lines as $line ) {
+				$line = trim( $line );
+				if ( ! empty( $line ) ) {
+					$ips[] = $line;
+				}
+			}
+		}
+
+		if ( ! empty( $ips ) ) {
+			update_option( 'trackly_cf_proxies', $ips );
+		}
 	}
 }

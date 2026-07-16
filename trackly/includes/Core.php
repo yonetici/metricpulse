@@ -2,7 +2,7 @@
 namespace Trackly;
 
 use Trackly\Admin\Admin;
-use Trackly\PublicPanel\PublicPanel;
+use Trackly\Frontend\Tracker;
 
 /**
  * Main loader class for Trackly.
@@ -31,7 +31,7 @@ class Core {
 		$admin->init_hooks();
 
 		// Initialize Public (Frontend) Hooks (Loaded via Autoloader)
-		$public = new PublicPanel( $this->plugin_name, $this->version );
+		$public = new Tracker( $this->plugin_name, $this->version );
 		$public->init_hooks();
 	}
 

@@ -25,14 +25,12 @@ foreach ( $options as $option ) {
 }
 
 // 2. Clear Transients
-delete_transient( 'g_token' );
 delete_transient( 'trackly_access_token' );
+delete_transient( 'trackly_realtime_cache' );
 
 global $wpdb;
 $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_trackly_%'" );
 $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_timeout_trackly_%'" );
-$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_g_b_%'" );
-$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_timeout_g_b_%'" );
 
 // 3. Drop Custom Table
 $table_name = $wpdb->prefix . 'trackly_clicks';

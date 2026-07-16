@@ -37,7 +37,7 @@ spl_autoload_register( function ( $class ) {
 	} else {
 		// Namespaced sub-classes mapping to lowercase folder names (e.g., Admin\Admin -> admin/Admin.php)
 		$parts = explode( '\\', $relative_class );
-		$parts[0] = strtolower( str_replace( 'PublicPanel', 'public', $parts[0] ) );
+		$parts[0] = strtolower( $parts[0] );
 		$file = $base_dir . implode( '/', $parts ) . '.php';
 	}
 

@@ -14,6 +14,7 @@ define( 'TRACKLY_URL', 'http://example.com/wp-content/plugins/trackly/' );
 global $wpdb;
 class Mock_WPDB {
 	public $prefix = 'wp_';
+	public $last_insert = array();
 	public function prepare( $query, ...$args ) {
 		return vsprintf( str_replace( '%s', "'%s'", $query ), $args );
 	}
@@ -27,10 +28,28 @@ class Mock_WPDB {
 		return array();
 	}
 	public function insert( $table, $data, $format = null ) {
+		$this->last_insert = array( 'table' => $table, 'data' => $data );
 		return true;
 	}
 }
 $wpdb = new Mock_WPDB();
+
+class WP_Error {
+	public $code;
+	public $message;
+	public $data;
+	public function __construct( $code = '', $message = '', $data = '' ) {
+		$this->code = $code;
+		$this->message = $message;
+		$this->data = $data;
+	}
+	public function get_error_message() {
+		return $this->message;
+	}
+}
+function is_wp_error( $thing ) {
+	return $thing instanceof WP_Error;
+}
 
 // Mock memory-based options and transients storage
 global $mock_options;

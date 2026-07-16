@@ -264,18 +264,17 @@
 		clearHeatmapDots();
 		
 		const $overlay = $('<div id="trackly-heatmap-overlay"></div>');
-		const dots = [];
+		const fragment = document.createDocumentFragment();
 		
 		clicks.forEach(function(click) {
-			const $dot = $('<div class="trackly-heatmap-dot"></div>');
-			$dot.css({
-				left: click.click_x_pct + '%',
-				top: click.click_y_pct + '%'
-			});
-			dots.push($dot);
+			const dot = document.createElement('div');
+			dot.className = 'trackly-heatmap-dot';
+			dot.style.left = click.click_x_pct + '%';
+			dot.style.top = click.click_y_pct + '%';
+			fragment.appendChild(dot);
 		});
 		
-		$overlay.append(dots);
+		$overlay.append(fragment);
 		$('body').append($overlay);
 	}
 

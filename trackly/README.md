@@ -78,13 +78,13 @@ trackly/
 
 ---
 
-## 🔒 Enterprise Security & Cryptography
+## 🔒 Credential Security & Cryptography
 
 Trackly is designed to protect your Google Analytics secrets using security best practices:
 
-1.  **AES-256-CBC Secret Encryption:** Your Google Service Account private credentials are encrypted prior to being stored in the database.
+1.  **AES-256-GCM Secret Encryption:** Your Google Service Account private credentials are encrypted using authenticated GCM (with authenticity verification tags) prior to being stored in the database.
 2.  **Dynamic Salt Generation:** Uses a composite key containing your server's security salts (`SECURE_AUTH_KEY`, `NONCE_KEY`) combined with a dynamic 64-character unique key generated during activation (`trackly_secure_salt`).
-3.  **Restricted REST API Rate Limiting:** Telemetry logging endpoint is throttled to a maximum of 10 requests per minute per IP address, preventing database spam and DDoS attempts.
+3.  **Restricted REST API Rate Limiting:** Telemetry logging endpoint is throttled to a maximum of 10 requests per minute per client IP, mitigating endpoint abuse and database spam.
 4.  **XSS & Payload Protection:** Custom events generated via the Event Builder undergo strict regex parsing to prevent HTML/script injection in selector fields.
 
 ---

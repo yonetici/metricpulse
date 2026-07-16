@@ -1,5 +1,5 @@
 <?php
-namespace Trackly\PublicPanel;
+namespace Trackly\Frontend;
 
 use Trackly\Api;
 use Trackly\Database;
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class PublicPanel {
+class Tracker {
 
 	private $plugin_name;
 	private $version;

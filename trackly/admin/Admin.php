@@ -139,9 +139,7 @@ class Admin {
 	public function display_plugin_admin_page() {
 		// Clear GA transient cache if settings just updated & verify authority
 		if ( isset( $_GET['settings-updated'] ) && current_user_can( 'manage_options' ) ) {
-			delete_transient( 'g_token' );
-			global $wpdb;
-			$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_g_b_%'" );
+			Api::flush_cache();
 		}
 
 		$demo_mode = get_option( 'trackly_demo_mode', 'yes' );
@@ -418,16 +416,98 @@ class Admin {
 	 * Verify public click telemetry REST API submissions via public nonce.
 	 */
 	public function check_public_click_permissions( $request ) {
+		// 1. Block common web crawlers and scrapers via User-Agent to prevent database spam
+		$user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
+		if ( preg_match( '/bot|crawl|slurp|spider|mediapartners|lighthouse|google/i', $user_agent ) ) {
+			return false;
+		}
+
+		// 2. Prevent Cross-Origin click logging by verifying that Referer header matches the host domain
+		$referer = isset( $_SERVER['HTTP_REFERER'] ) ? esc_url_raw( $_SERVER['HTTP_REFERER'] ) : '';
+		if ( $referer ) {
+			$host = wp_parse_url( home_url(), PHP_URL_HOST );
+			$referer_host = wp_parse_url( $referer, PHP_URL_HOST );
+			if ( $host !== $referer_host ) {
+				return false;
+			}
+		}
+
+		// 3. Verify public telemetry CSRF nonce token
 		$nonce = $request->get_header( 'X-WP-Nonce' );
 		return (bool) wp_verify_nonce( $nonce, 'trackly_public_clicks' );
 	}
 
 	/**
-	 * Robust client IP retriever.
+	 * Robust client IP retriever with Cloudflare and Nginx reverse proxy whitelisting.
 	 */
 	private function get_ip_address() {
-		// Rely strictly on REMOTE_ADDR to prevent IP spoofing via user-controlled request headers
-		return isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( $_SERVER['REMOTE_ADDR'] ) : '0.0.0.0';
+		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( $_SERVER['REMOTE_ADDR'] ) : '0.0.0.0';
+
+		// Whitelist Cloudflare IPv4 ranges by default to support Cloudflare out-of-the-box
+		$default_proxies = array(
+			'173.245.48.0/20',
+			'103.21.244.0/22',
+			'103.22.200.0/22',
+			'103.31.4.0/22',
+			'141.101.64.0/18',
+			'108.162.192.0/18',
+			'190.93.240.0/20',
+			'188.114.96.0/20',
+			'197.234.240.0/22',
+			'198.41.128.0/17',
+			'162.158.0.0/15',
+			'104.16.0.0/13',
+			'104.24.0.0/14',
+			'172.64.0.0/13',
+			'131.0.72.0/22',
+		);
+
+		// Allow developers to override/append trusted proxy CIDRs
+		$trusted_proxies = apply_filters( 'trackly_trusted_proxies', $default_proxies );
+
+		if ( ! empty( $trusted_proxies ) ) {
+			$is_trusted = false;
+			foreach ( $trusted_proxies as $proxy ) {
+				if ( $this->ip_in_range( $ip, $proxy ) ) {
+					$is_trusted = true;
+					break;
+				}
+			}
+
+			if ( $is_trusted ) {
+				foreach ( array( 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP' ) as $header ) {
+					if ( ! empty( $_SERVER[ $header ] ) ) {
+						$ips = explode( ',', $_SERVER[ $header ] );
+						$client_ip = trim( $ips[0] );
+						if ( filter_var( $client_ip, FILTER_VALIDATE_IP ) !== false ) {
+							return $client_ip;
+						}
+					}
+				}
+			}
+		}
+
+		return $ip;
+	}
+
+	/**
+	 * Helper function to verify if an IP matches a CIDR block or absolute IP.
+	 */
+	private function ip_in_range( $ip, $range ) {
+		if ( strpos( $range, '/' ) === false ) {
+			return $ip === $range;
+		}
+
+		list( $subnet, $bits ) = explode( '/', $range );
+		$ip_long = ip2long( $ip );
+		$subnet_long = ip2long( $subnet );
+		if ( false === $ip_long || false === $subnet_long ) {
+			return false;
+		}
+
+		$mask = -1 << ( 32 - $bits );
+		$subnet_long &= $mask;
+		return ( $ip_long & $mask ) == $subnet_long;
 	}
 
 	/**

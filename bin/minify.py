@@ -15,17 +15,13 @@ def minify_css(css_content):
 def minify_js(js_content):
     # Remove multi-line comments
     js_content = re.sub(r'/\*.*?\*/', '', js_content, flags=re.DOTALL)
-    # Remove single-line comments, but preserve those within quotes/regexes
-    js_content = re.sub(r'^\s*//.*$', '', js_content, flags=re.MULTILINE)
-    # Remove comments at end of lines if they are preceded by space + //
-    js_content = re.sub(r'\s+//(?![^"\']*["\'](?:[^"\']*["\'][^"\']*["\'])*[^"\']*$).*$', '', js_content, flags=re.MULTILINE)
-    # Remove consecutive empty lines and excess whitespace
-    lines = []
-    for line in js_content.splitlines():
-        line_stripped = line.strip()
-        if line_stripped:
-            lines.append(line)
-    return "\n".join(lines)
+    # Remove single-line comments (but ignore URL schemas like http:// or https://)
+    js_content = re.sub(r'(?<!:)\/\/.*$', '', js_content, flags=re.MULTILINE)
+    # Collapse multiple whitespaces/newlines into a single space
+    js_content = re.sub(r'\s+', ' ', js_content)
+    # Remove whitespace around operators and delimiters
+    js_content = re.sub(r'\s*([\{\}\(\)\[\]=\+\-\*\/,;:<>!|&])\s*', r'\1', js_content)
+    return js_content.strip()
 
 def process_file(file_path):
     ext = os.path.splitext(file_path)[1]

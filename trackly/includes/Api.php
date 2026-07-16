@@ -1,6 +1,8 @@
 <?php
 namespace Trackly;
 
+use WP_Error;
+
 /**
  * GA4 API Client and Mock Data Engine.
  */
@@ -11,7 +13,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Api {
 
-	private static $token_transient_key = 'trackly_access_token'; // Cached GA4 API access token
+	const TOKEN_KEY = 'trackly_access_token';
+	const BATCH_PREFIX = 'trackly_b_';
+	const REALTIME_KEY = 'trackly_realtime_cache';
+
+	/**
+	 * Flush all cached GA4 API transient data.
+	 */
+	public static function flush_cache() {
+		delete_transient( self::TOKEN_KEY );
+		delete_transient( self::REALTIME_KEY );
+
+		global $wpdb;
+		$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_" . self::BATCH_PREFIX . "%'" );
+		$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_timeout_" . self::BATCH_PREFIX . "%'" );
+	}
 
 	/**
 	 * Secure encryption key generation using site salts and unique dynamic secure salt option.
@@ -98,7 +114,7 @@ class Api {
 	 * Get GA4 Access Token using Service Account JSON.
 	 */
 	private static function get_access_token() {
-		$token = get_transient( self::$token_transient_key );
+		$token = get_transient( self::TOKEN_KEY );
 		if ( $token ) {
 			return $token;
 		}
@@ -161,7 +177,7 @@ class Api {
 		}
 
 		$access_token = $body['access_token'];
-		set_transient( self::$token_transient_key, $access_token, 55 * MINUTE_IN_SECONDS );
+		set_transient( self::TOKEN_KEY, $access_token, 55 * MINUTE_IN_SECONDS );
 
 		return $access_token;
 	}
@@ -171,7 +187,7 @@ class Api {
 	 */
 	public static function batch_run_reports( $requests ) {
 		// Cached transient prefix
-		$cache_key = 'trackly_b_' . md5( json_encode( $requests ) );
+		$cache_key = self::BATCH_PREFIX . md5( json_encode( $requests ) );
 		$cached = get_transient( $cache_key );
 		if ( false !== $cached ) {
 			return $cached;
@@ -433,7 +449,7 @@ class Api {
 		}
 
 		// Cached realtime visitors to prevent GA4 quota exhaustion
-		$cached = get_transient( 'trackly_realtime_cache' );
+		$cached = get_transient( self::REALTIME_KEY );
 		if ( false !== $cached ) {
 			return intval( $cached );
 		}
@@ -473,7 +489,7 @@ class Api {
 			$count = intval( $body['rows'][0]['metricValues'][0]['value'] );
 		}
 
-		set_transient( 'trackly_realtime_cache', $count, 30 ); // Cache active users for 30s
+		set_transient( self::REALTIME_KEY, $count, 30 ); // Cache active users for 30s
 		return $count;
 	}
 

@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+import re
+import os
+
+def minify_css(css_content):
+    # Remove block comments
+    css_content = re.sub(r'/\*.*?\*/', '', css_content, flags=re.DOTALL)
+    # Remove whitespace around delimiters
+    css_content = re.sub(r'\s*([\{\};:,])\s*', r'\1', css_content)
+    # Remove redundant spaces
+    css_content = re.sub(r'\s+', ' ', css_content)
+    # Trim
+    return css_content.strip()
+
+def minify_js(js_content):
+    # Remove multi-line comments
+    js_content = re.sub(r'/\*.*?\*/', '', js_content, flags=re.DOTALL)
+    # Remove single-line comments, but preserve those within quotes/regexes
+    js_content = re.sub(r'^\s*//.*$', '', js_content, flags=re.MULTILINE)
+    # Remove comments at end of lines if they are preceded by space + //
+    js_content = re.sub(r'\s+//(?![^"\']*["\'](?:[^"\']*["\'][^"\']*["\'])*[^"\']*$).*$', '', js_content, flags=re.MULTILINE)
+    # Remove consecutive empty lines and excess whitespace
+    lines = []
+    for line in js_content.splitlines():
+        line_stripped = line.strip()
+        if line_stripped:
+            lines.append(line)
+    return "\n".join(lines)
+
+def process_file(file_path):
+    ext = os.path.splitext(file_path)[1]
+    if ext == '.min.js' or ext == '.min.css':
+        return
+        
+    print(f"Minifying: {file_path}")
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+        
+    if ext == '.css':
+        minified = minify_css(content)
+        out_ext = '.min.css'
+    elif ext == '.js':
+        minified = minify_js(content)
+        out_ext = '.min.js'
+    else:
+        return
+        
+    out_path = os.path.splitext(file_path)[0] + out_ext
+    with open(out_path, 'w', encoding='utf-8') as f:
+        f.write(minified)
+    print(f"Generated: {out_path} ({len(content)} -> {len(minified)} bytes)")
+
+def main():
+    targets = [
+        "trackly/admin/css/trackly-admin.css",
+        "trackly/admin/js/trackly-admin.js",
+        "trackly/public/css/trackly-public.css",
+        "trackly/public/js/trackly-public.js",
+        "trackly/public/js/trackly-tracker.js"
+    ]
+    
+    for target in targets:
+        if os.path.exists(target):
+            process_file(target)
+        else:
+            print(f"Warning: Target path not found: {target}")
+
+if __name__ == '__main__':
+    main()

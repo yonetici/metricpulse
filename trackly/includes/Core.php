@@ -1,4 +1,9 @@
 <?php
+namespace Trackly;
+
+use Trackly\Admin\Admin;
+use Trackly\PublicPanel\PublicPanel;
+
 /**
  * Main loader class for Trackly.
  */
@@ -7,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Trackly {
+class Core {
 
 	protected $plugin_name;
 	protected $version;
@@ -19,14 +24,14 @@ class Trackly {
 
 	public function run() {
 		// Initialize Database and Cron hooks (Loaded via Autoloader)
-		Trackly_DB::init();
+		Database::init();
 
 		// Initialize Admin Hooks (Loaded via Autoloader)
-		$admin = new Trackly_Admin( $this->plugin_name, $this->version );
+		$admin = new Admin( $this->plugin_name, $this->version );
 		$admin->init_hooks();
 
 		// Initialize Public (Frontend) Hooks (Loaded via Autoloader)
-		$public = new Trackly_Public( $this->plugin_name, $this->version );
+		$public = new PublicPanel( $this->plugin_name, $this->version );
 		$public->init_hooks();
 	}
 

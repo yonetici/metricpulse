@@ -1,4 +1,6 @@
 <?php
+namespace Trackly;
+
 /**
  * GA4 API Client and Mock Data Engine.
  */
@@ -7,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Trackly_API {
+class Api {
 
 	private static $token_transient_key = 'trackly_access_token'; // Cached GA4 API access token
 

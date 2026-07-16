@@ -1,4 +1,9 @@
 <?php
+namespace Trackly\PublicPanel;
+
+use Trackly\Api;
+use Trackly\Database;
+
 /**
  * Public Front-End hooks and rendering handlers.
  */
@@ -7,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Trackly_Public {
+class PublicPanel {
 
 	private $plugin_name;
 	private $version;
@@ -39,8 +44,8 @@ class Trackly_Public {
 		$sampling_rate = get_option( 'trackly_sampling_rate', '100' );
 		$require_consent = get_option( 'trackly_require_consent', 'yes' ) === 'yes' ? 1 : 0;
 
-		// 1. Enqueue lightweight click tracker script for EVERYONE (no jQuery dependency)
-		wp_enqueue_script( $this->plugin_name . '-tracker-js', TRACKLY_URL . 'public/js/trackly-tracker.js', array(), $this->version, true );
+		// 1. Enqueue lightweight click tracker script for EVERYONE (no jQuery dependency, Minified)
+		wp_enqueue_script( $this->plugin_name . '-tracker-js', TRACKLY_URL . 'public/js/trackly-tracker.min.js', array(), $this->version, true );
 		
 		wp_localize_script( $this->plugin_name . '-tracker-js', 'tracklyTrackerData', array(
 			'rest_url'        => esc_url_raw( rest_url( 'trackly/v1' ) ),
@@ -50,10 +55,10 @@ class Trackly_Public {
 			'nonce'           => wp_create_nonce( 'trackly_public_clicks' ),
 		) );
 
-		// 2. Load heavy admin panel JS/CSS ONLY for logged-in administrators (Core Web Vitals Optimisation)
+		// 2. Load heavy admin panel JS/CSS ONLY for logged-in administrators (Core Web Vitals Optimisation, Minified)
 		if ( current_user_can( 'manage_options' ) ) {
-			wp_enqueue_style( $this->plugin_name . '-public-css', TRACKLY_URL . 'public/css/trackly-public.css', array(), $this->version );
-			wp_enqueue_script( $this->plugin_name . '-public-js', TRACKLY_URL . 'public/js/trackly-public.js', array( 'jquery' ), $this->version, true );
+			wp_enqueue_style( $this->plugin_name . '-public-css', TRACKLY_URL . 'public/css/trackly-public.min.css', array(), $this->version );
+			wp_enqueue_script( $this->plugin_name . '-public-js', TRACKLY_URL . 'public/js/trackly-public.min.js', array( 'jquery' ), $this->version, true );
 
 			wp_localize_script( $this->plugin_name . '-public-js', 'tracklyPublicData', array(
 				'rest_url'   => esc_url_raw( rest_url( 'trackly/v1' ) ),

@@ -1,4 +1,10 @@
 <?php
+namespace Trackly\Admin;
+
+use Trackly\Api;
+use Trackly\Database;
+use WP_REST_Response;
+
 /**
  * Admin Panel controls and REST API handlers.
  */
@@ -7,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Trackly_Admin {
+class Admin {
 
 	private $plugin_name;
 	private $version;
@@ -78,7 +84,7 @@ class Trackly_Admin {
 		$decoded = json_decode( $value, true );
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
 			// If it's already encrypted, keep it
-			$decrypted = Trackly_API::decrypt_data( $value );
+			$decrypted = Api::decrypt_data( $value );
 			if ( ! empty( $decrypted ) && null !== json_decode( $decrypted ) ) {
 				return $value;
 			}
@@ -87,7 +93,7 @@ class Trackly_Admin {
 		}
 
 		// Save encrypted JSON
-		return Trackly_API::encrypt_data( $value );
+		return Api::encrypt_data( $value );
 	}
 
 	/**
@@ -116,9 +122,9 @@ class Trackly_Admin {
 		// Enqueue Localized ApexCharts (No longer loading from CDN)
 		wp_enqueue_script( 'apexcharts', TRACKLY_URL . 'admin/js/vendor/apexcharts.min.js', array(), '3.41.0', true );
 
-		// Local Admin CSS & JS
-		wp_enqueue_style( $this->plugin_name . '-admin-css', TRACKLY_URL . 'admin/css/trackly-admin.css', array(), $this->version );
-		wp_enqueue_script( $this->plugin_name . '-admin-js', TRACKLY_URL . 'admin/js/trackly-admin.js', array( 'jquery', 'apexcharts' ), $this->version, true );
+		// Local Admin CSS & JS (Minified)
+		wp_enqueue_style( $this->plugin_name . '-admin-css', TRACKLY_URL . 'admin/css/trackly-admin.min.css', array(), $this->version );
+		wp_enqueue_script( $this->plugin_name . '-admin-js', TRACKLY_URL . 'admin/js/trackly-admin.min.js', array( 'jquery', 'apexcharts' ), $this->version, true );
 
 		// Localize Script for REST API URL & Nonce
 		wp_localize_script( $this->plugin_name . '-admin-js', 'tracklyData', array(
@@ -145,7 +151,7 @@ class Trackly_Admin {
 		$require_consent = get_option( 'trackly_require_consent', 'yes' );
 		
 		// Decrypt credentials and mask the private key to prevent screen exposure
-		$credentials_raw = Trackly_API::decrypt_data( $credentials_encrypted );
+		$credentials_raw = Api::decrypt_data( $credentials_encrypted );
 		$credentials = '';
 		if ( ! empty( $credentials_raw ) ) {
 			$creds_obj = json_decode( $credentials_raw, true );
@@ -479,7 +485,7 @@ class Trackly_Admin {
 			),
 		);
 
-		$batch_report = Trackly_API::batch_run_reports( array(
+		$batch_report = Api::batch_run_reports( array(
 			$summary_req,
 			$chart_req,
 			$sources_req,
@@ -491,7 +497,7 @@ class Trackly_Admin {
 			return new WP_REST_Response( array( 'success' => false, 'error' => $batch_report->get_error_message() ), 500 );
 		}
 
-		$realtime_users = Trackly_API::get_realtime_users();
+		$realtime_users = Api::get_realtime_users();
 
 		return new WP_REST_Response( array(
 			'success'        => true,
@@ -508,7 +514,7 @@ class Trackly_Admin {
 	 * REST Callback for lightweight realtime polling.
 	 */
 	public function get_realtime_callback( $request ) {
-		$realtime_users = Trackly_API::get_realtime_users();
+		$realtime_users = Api::get_realtime_users();
 		return new WP_REST_Response( array(
 			'success'        => true,
 			'realtime_users' => $realtime_users,
@@ -529,7 +535,7 @@ class Trackly_Admin {
 			$path = '/';
 		}
 
-		$report = Trackly_API::get_report( array(
+		$report = Api::get_report( array(
 			'dateRanges'      => array( array( 'startDate' => '7daysAgo', 'endDate' => 'yesterday' ) ),
 			'dimensions'      => array( array( 'name' => 'pagePath' ) ),
 			'metrics'         => array(
@@ -581,7 +587,7 @@ class Trackly_Admin {
 			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'Invalid click data.', 'trackly' ) ), 400 );
 		}
 
-		$log_result = Trackly_DB::log_click( array(
+		$log_result = Database::log_click( array(
 			'page_url'         => $params['page_url'],
 			'element_tag'      => isset( $params['element_tag'] ) ? sanitize_text_field( $params['element_tag'] ) : 'unknown',
 			'element_selector' => isset( $params['element_selector'] ) ? sanitize_text_field( $params['element_selector'] ) : '',
@@ -601,7 +607,7 @@ class Trackly_Admin {
 			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'URL parameter required.', 'trackly' ) ), 400 );
 		}
 
-		$clicks = Trackly_DB::get_clicks_for_page( $url );
+		$clicks = Database::get_clicks_for_page( $url );
 
 		return new WP_REST_Response( array(
 			'success' => true,

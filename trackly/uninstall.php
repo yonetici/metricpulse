@@ -17,6 +17,7 @@ $options = array(
 	'trackly_sampling_rate',
 	'trackly_secure_salt',
 	'trackly_custom_events',
+	'trackly_require_consent',
 );
 
 foreach ( $options as $option ) {

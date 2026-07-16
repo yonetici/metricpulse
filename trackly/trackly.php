@@ -19,33 +19,38 @@ define( 'TRACKLY_VERSION', '1.0.0' );
 define( 'TRACKLY_PATH', plugin_dir_path( __FILE__ ) );
 define( 'TRACKLY_URL', plugin_dir_url( __FILE__ ) );
 
-// 1. PSR-4 style Class Autoloader to remove procedural require_once calls
-spl_autoload_register( function ( $class_name ) {
-	// Only load classes belonging to this plugin
-	if ( strpos( $class_name, 'Trackly' ) === 0 ) {
-		$class_slug = strtolower( str_replace( '_', '-', $class_name ) );
-		$file_name = 'class-' . $class_slug . '.php';
+// 1. PSR-4 style Class Autoloader to support namespace class loading
+spl_autoload_register( function ( $class ) {
+	$prefix = 'Trackly\\';
+	$base_dir = TRACKLY_PATH;
 
-		// Determine module directory based on naming slug
-		if ( strpos( $class_slug, 'trackly-admin' ) === 0 ) {
-			$file = TRACKLY_PATH . 'admin/' . $file_name;
-		} elseif ( strpos( $class_slug, 'trackly-public' ) === 0 ) {
-			$file = TRACKLY_PATH . 'public/' . $file_name;
-		} else {
-			$file = TRACKLY_PATH . 'includes/' . $file_name;
-		}
+	$len = strlen( $prefix );
+	if ( strncmp( $prefix, $class, $len ) !== 0 ) {
+		return;
+	}
 
-		if ( file_exists( $file ) ) {
-			require_once $file;
-		}
+	$relative_class = substr( $class, $len );
+
+	if ( strpos( $relative_class, '\\' ) === false ) {
+		// Core classes mapped directly to includes/
+		$file = $base_dir . 'includes/' . $relative_class . '.php';
+	} else {
+		// Namespaced sub-classes mapping to lowercase folder names (e.g., Admin\Admin -> admin/Admin.php)
+		$parts = explode( '\\', $relative_class );
+		$parts[0] = strtolower( str_replace( 'PublicPanel', 'public', $parts[0] ) );
+		$file = $base_dir . implode( '/', $parts ) . '.php';
+	}
+
+	if ( file_exists( $file ) ) {
+		require_once $file;
 	}
 } );
 
 // Activate / Deactivate hooks
 function activate_trackly() {
 	// Trigger DB table creation
-	Trackly_DB::create_tables();
-	Trackly_DB::schedule_cleanup();
+	Trackly\Database::create_tables();
+	Trackly\Database::schedule_cleanup();
 
 	// Generate a unique dynamic fallback encryption key if not exists (Enterprise Security)
 	if ( ! get_option( 'trackly_secure_salt' ) ) {
@@ -56,13 +61,13 @@ function activate_trackly() {
 register_activation_hook( __FILE__, 'activate_trackly' );
 
 function deactivate_trackly() {
-	Trackly_DB::unschedule_cleanup();
+	Trackly\Database::unschedule_cleanup();
 }
 register_deactivation_hook( __FILE__, 'deactivate_trackly' );
 
 // Run the plugin
 function run_trackly() {
-	$plugin = new Trackly();
+	$plugin = new Trackly\Core();
 	$plugin->run();
 }
 run_trackly();

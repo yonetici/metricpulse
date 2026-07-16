@@ -1,0 +1,103 @@
+<?php
+/**
+ * Bootstrap file for Trackly PHPUnit tests.
+ * Mocks necessary WordPress core components to run unit tests in isolation.
+ */
+
+// Define basic constants
+define( 'ABSPATH', dirname( __DIR__ ) . '/' );
+define( 'TRACKLY_VERSION', '1.0.0' );
+define( 'TRACKLY_PATH', dirname( __DIR__ ) . '/' );
+define( 'TRACKLY_URL', 'http://example.com/wp-content/plugins/trackly/' );
+
+// Mock global variables
+global $wpdb;
+class Mock_WPDB {
+	public $prefix = 'wp_';
+	public function prepare( $query, ...$args ) {
+		return vsprintf( str_replace( '%s', "'%s'", $query ), $args );
+	}
+	public function query( $query ) {
+		return true;
+	}
+	public function get_var( $query ) {
+		return null;
+	}
+	public function get_results( $query, $output = 'OBJECT' ) {
+		return array();
+	}
+	public function insert( $table, $data, $format = null ) {
+		return true;
+	}
+}
+$wpdb = new Mock_WPDB();
+
+// Mock memory-based options and transients storage
+global $mock_options;
+$mock_options = array();
+
+global $mock_transients;
+$mock_transients = array();
+
+// Mock WordPress Core Functions
+function add_action( $hook, $callback, $priority = 10, $args = 1 ) { return true; }
+function add_filter( $hook, $callback, $priority = 10, $args = 1 ) { return true; }
+function register_activation_hook( $file, $callback ) { return true; }
+function register_deactivation_hook( $file, $callback ) { return true; }
+
+function get_option( $option, $default = false ) {
+	global $mock_options;
+	return isset( $mock_options[ $option ] ) ? $mock_options[ $option ] : $default;
+}
+function update_option( $option, $value, $autoload = null ) {
+	global $mock_options;
+	$mock_options[ $option ] = $value;
+	return true;
+}
+function delete_option( $option ) {
+	global $mock_options;
+	unset( $mock_options[ $option ] );
+	return true;
+}
+
+function get_transient( $transient ) {
+	global $mock_transients;
+	return isset( $mock_transients[ $transient ] ) ? $mock_transients[ $transient ] : false;
+}
+function set_transient( $transient, $value, $expiration = 0 ) {
+	global $mock_transients;
+	$mock_transients[ $transient ] = $value;
+	return true;
+}
+function delete_transient( $transient ) {
+	global $mock_transients;
+	unset( $mock_transients[ $transient ] );
+	return true;
+}
+
+function wp_generate_password( $length = 12, $special_chars = true, $extra_special_chars = false ) {
+	return str_repeat( 'a', $length );
+}
+
+function esc_url_raw( $url ) {
+	return $url;
+}
+function sanitize_text_field( $str ) {
+	return strip_tags( $str );
+}
+function wp_unslash( $str ) {
+	return stripslashes( $str );
+}
+function __( $text, $domain = 'default' ) {
+	return $text;
+}
+function _e( $text, $domain = 'default' ) {
+	echo $text;
+}
+
+function wp_json_encode( $data, $options = 0, $depth = 512 ) {
+	return json_encode( $data, $options, $depth );
+}
+
+// Load PSR-4 Autoloader
+require_once dirname( __DIR__ ) . '/trackly.php';

@@ -1,4 +1,6 @@
 <?php
+namespace Trackly;
+
 /**
  * Database and table management class.
  */
@@ -7,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Trackly_DB {
+class Database {
 
 	public static function init() {
 		add_action( 'trackly_daily_cleanup', array( __CLASS__, 'daily_cleanup' ) );

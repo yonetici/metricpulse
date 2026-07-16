@@ -28,10 +28,15 @@ class Trackly_DB {
 
 		// Check if old columns exist (v1.1 migration protection)
 		if ( $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table_name ) ) ) {
-			$column_check = $wpdb->get_results( "SHOW COLUMNS FROM $table_name LIKE 'screen_width'" );
-			if ( ! empty( $column_check ) ) {
-				// Rebuild the telemetry table if upgrading schema from v1.1
-				$wpdb->query( "DROP TABLE IF EXISTS $table_name" );
+			$column_check_width = $wpdb->get_results( "SHOW COLUMNS FROM $table_name LIKE 'screen_width'" );
+			if ( ! empty( $column_check_width ) ) {
+				// Safely drop the screen_width column to avoid SQL failures without dropping the table
+				$wpdb->query( "ALTER TABLE $table_name DROP COLUMN screen_width" );
+			}
+			$column_check_height = $wpdb->get_results( "SHOW COLUMNS FROM $table_name LIKE 'screen_height'" );
+			if ( ! empty( $column_check_height ) ) {
+				// Safely drop the screen_height column
+				$wpdb->query( "ALTER TABLE $table_name DROP COLUMN screen_height" );
 			}
 		}
 

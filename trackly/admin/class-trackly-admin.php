@@ -53,6 +53,12 @@ class Trackly_Admin {
 			'default'           => '100',
 			'sanitize_callback' => 'sanitize_text_field',
 		) );
+		// Require consent option for GDPR compliance
+		register_setting( 'trackly_settings_group', 'trackly_require_consent', array(
+			'type'              => 'string',
+			'default'           => 'yes',
+			'sanitize_callback' => 'sanitize_text_field',
+		) );
 	}
 
 	/**
@@ -62,6 +68,11 @@ class Trackly_Admin {
 		$value = wp_unslash( trim( $value ) );
 		if ( empty( $value ) ) {
 			return '';
+		}
+
+		// Detect masked credential placeholder and keep current database value
+		if ( strpos( $value, '****************************************' ) !== false ) {
+			return get_option( 'trackly_credentials', '' );
 		}
 
 		$decoded = json_decode( $value, true );
@@ -131,9 +142,18 @@ class Trackly_Admin {
 		$property_id = get_option( 'trackly_property_id', '' );
 		$credentials_encrypted = get_option( 'trackly_credentials', '' );
 		$sampling_rate = get_option( 'trackly_sampling_rate', '100' );
+		$require_consent = get_option( 'trackly_require_consent', 'yes' );
 		
-		// Decrypt credentials to show in textarea
-		$credentials = Trackly_API::decrypt_data( $credentials_encrypted );
+		// Decrypt credentials and mask the private key to prevent screen exposure
+		$credentials_raw = Trackly_API::decrypt_data( $credentials_encrypted );
+		$credentials = '';
+		if ( ! empty( $credentials_raw ) ) {
+			$creds_obj = json_decode( $credentials_raw, true );
+			if ( is_array( $creds_obj ) ) {
+				$creds_obj['private_key'] = '****************************************';
+				$credentials = json_encode( $creds_obj, JSON_PRETTY_PRINT );
+			}
+		}
 		$is_connected = ! empty( $property_id ) && ! empty( $credentials_encrypted );
 
 		?>
@@ -286,6 +306,7 @@ class Trackly_Admin {
 
 						<div class="trackly-form-group">
 							<label class="trackly-switch-label">
+								<input type="hidden" name="trackly_demo_mode" value="no">
 								<input type="checkbox" name="trackly_demo_mode" value="yes" <?php checked( $demo_mode, 'yes' ); ?>>
 								<span class="trackly-switch-slider"></span>
 								<div class="label-text">
@@ -297,8 +318,17 @@ class Trackly_Admin {
 
 						<div class="trackly-form-group">
 							<label class="trackly-switch-label">
-								<input type="hidden" name="trackly_demo_mode" value="no" style="display:none;">
+								<input type="hidden" name="trackly_require_consent" value="no">
+								<input type="checkbox" name="trackly_require_consent" value="yes" <?php checked( $require_consent, 'yes' ); ?>>
+								<span class="trackly-switch-slider"></span>
+								<div class="label-text">
+									<strong><?php _e( 'Require Cookie Consent (Strict GDPR)', 'trackly' ); ?></strong>
+									<p class="description"><?php _e( 'If enabled, the tracker will start in opt-in mode and will block click telemetry until consent is explicitly granted via Borlabs, Complianz, CLI, or Google Consent Mode v2.', 'trackly' ); ?></p>
+								</div>
 							</label>
+						</div>
+
+						<div class="trackly-form-group">
 							<label for="trackly_property_id"><?php _e( 'GA4 Property ID', 'trackly' ); ?></label>
 							<input type="text" id="trackly_property_id" name="trackly_property_id" value="<?php echo esc_attr( $property_id ); ?>" placeholder="e.g. 382901248" class="regular-text">
 							<p class="description"><?php _e( 'The numeric Property ID of your Google Analytics property (Can be found in Admin > Property Settings).', 'trackly' ); ?></p>
@@ -355,7 +385,7 @@ class Trackly_Admin {
 		register_rest_route( 'trackly/v1', '/record-click', array(
 			'methods'             => 'POST',
 			'callback'            => array( $this, 'record_click_callback' ),
-			'permission_callback' => '__return_true',
+			'permission_callback' => array( $this, 'check_public_click_permissions' ),
 		) );
 
 		register_rest_route( 'trackly/v1', '/clicks', array(
@@ -379,20 +409,19 @@ class Trackly_Admin {
 	}
 
 	/**
+	 * Verify public click telemetry REST API submissions via public nonce.
+	 */
+	public function check_public_click_permissions( $request ) {
+		$nonce = $request->get_header( 'X-WP-Nonce' );
+		return (bool) wp_verify_nonce( $nonce, 'trackly_public_clicks' );
+	}
+
+	/**
 	 * Robust client IP retriever.
 	 */
 	private function get_ip_address() {
-		foreach ( array( 'HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR' ) as $key ) {
-			if ( array_key_exists( $key, $_SERVER ) === true ) {
-				foreach ( explode( ',', $_SERVER[ $key ] ) as $ip ) {
-					$ip = trim( $ip );
-					if ( filter_var( $ip, FILTER_VALIDATE_IP ) !== false ) {
-						return $ip;
-					}
-				}
-			}
-		}
-		return '0.0.0.0';
+		// Rely strictly on REMOTE_ADDR to prevent IP spoofing via user-controlled request headers
+		return isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( $_SERVER['REMOTE_ADDR'] ) : '0.0.0.0';
 	}
 
 	/**

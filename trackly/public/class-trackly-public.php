@@ -37,14 +37,17 @@ class Trackly_Public {
 		$current_url = trailingslashit( $current_url );
 
 		$sampling_rate = get_option( 'trackly_sampling_rate', '100' );
+		$require_consent = get_option( 'trackly_require_consent', 'yes' ) === 'yes' ? 1 : 0;
 
 		// 1. Enqueue lightweight click tracker script for EVERYONE (no jQuery dependency)
 		wp_enqueue_script( $this->plugin_name . '-tracker-js', TRACKLY_URL . 'public/js/trackly-tracker.js', array(), $this->version, true );
 		
 		wp_localize_script( $this->plugin_name . '-tracker-js', 'tracklyTrackerData', array(
-			'rest_url'      => esc_url_raw( rest_url( 'trackly/v1' ) ),
-			'page_url'      => $current_url,
-			'sampling_rate' => intval( $sampling_rate ), // Passes rate (e.g. 10, 25, 50, 100)
+			'rest_url'        => esc_url_raw( rest_url( 'trackly/v1' ) ),
+			'page_url'        => $current_url,
+			'sampling_rate'   => intval( $sampling_rate ), // Passes rate (e.g. 10, 25, 50, 100)
+			'require_consent' => $require_consent,
+			'nonce'           => wp_create_nonce( 'trackly_public_clicks' ),
 		) );
 
 		// 2. Load heavy admin panel JS/CSS ONLY for logged-in administrators (Core Web Vitals Optimisation)

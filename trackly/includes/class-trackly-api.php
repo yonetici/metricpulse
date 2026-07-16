@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Trackly_API {
 
-	private static $token_transient_key = 'g_token'; // Shortened transient key (previously trackly_access_token)
+	private static $token_transient_key = 'trackly_access_token'; // Cached GA4 API access token
 
 	/**
 	 * Secure encryption key generation using site salts and unique dynamic secure salt option.
@@ -35,21 +35,24 @@ class Trackly_API {
 	}
 
 	/**
-	 * Encrypt credentials before saving to DB.
+	 * Encrypt credentials before saving to DB using AES-256-GCM.
 	 */
 	public static function encrypt_data( $data ) {
 		if ( empty( $data ) ) {
 			return '';
 		}
 		$key = self::get_encryption_key();
-		$iv_len = openssl_cipher_iv_length( 'aes-256-cbc' );
-		$iv = openssl_random_pseudo_bytes( $iv_len );
-		$encrypted = openssl_encrypt( $data, 'aes-256-cbc', $key, 0, $iv );
-		return base64_encode( $encrypted . '::' . $iv );
+		$iv = openssl_random_pseudo_bytes( 12 ); // 12 bytes standard IV for GCM
+		$tag = '';
+		$encrypted = openssl_encrypt( $data, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag );
+		if ( false === $encrypted ) {
+			return '';
+		}
+		return base64_encode( $encrypted . '::' . $iv . '::' . $tag );
 	}
 
 	/**
-	 * Decrypt credentials from DB.
+	 * Decrypt credentials from DB using AES-256-GCM.
 	 */
 	public static function decrypt_data( $data ) {
 		if ( empty( $data ) ) {
@@ -60,11 +63,13 @@ class Trackly_API {
 		if ( false === $decoded ) {
 			return '';
 		}
-		$parts = explode( '::', $decoded, 2 );
-		if ( count( $parts ) === 2 ) {
+		$parts = explode( '::', $decoded, 3 );
+		if ( count( $parts ) === 3 ) {
 			$encrypted = $parts[0];
 			$iv = $parts[1];
-			return openssl_decrypt( $encrypted, 'aes-256-cbc', $key, 0, $iv );
+			$tag = $parts[2];
+			$decrypted = openssl_decrypt( $encrypted, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag );
+			return ( false !== $decrypted ) ? $decrypted : '';
 		}
 		return '';
 	}
@@ -163,8 +168,8 @@ class Trackly_API {
 	 * Run a Batch of Reports to optimize quota usage and execution time.
 	 */
 	public static function batch_run_reports( $requests ) {
-		// Shortened transient prefix: 'g_b_' (4 chars) + md5 (32 chars) = 36 chars. Safely under 45-character old limit.
-		$cache_key = 'g_b_' . md5( json_encode( $requests ) );
+		// Cached transient prefix
+		$cache_key = 'trackly_b_' . md5( json_encode( $requests ) );
 		$cached = get_transient( $cache_key );
 		if ( false !== $cached ) {
 			return $cached;
@@ -425,6 +430,12 @@ class Trackly_API {
 			return rand( 8, 28 );
 		}
 
+		// Cached realtime visitors to prevent GA4 quota exhaustion
+		$cached = get_transient( 'trackly_realtime_cache' );
+		if ( false !== $cached ) {
+			return intval( $cached );
+		}
+
 		$property_id = get_option( 'trackly_property_id' );
 		if ( empty( $property_id ) ) {
 			return 0;
@@ -455,11 +466,13 @@ class Trackly_API {
 		}
 
 		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+		$count = 0;
 		if ( isset( $body['rows'][0]['metricValues'][0]['value'] ) ) {
-			return intval( $body['rows'][0]['metricValues'][0]['value'] );
+			$count = intval( $body['rows'][0]['metricValues'][0]['value'] );
 		}
 
-		return 0;
+		set_transient( 'trackly_realtime_cache', $count, 30 ); // Cache active users for 30s
+		return $count;
 	}
 
 	/**

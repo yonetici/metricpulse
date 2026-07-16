@@ -38,8 +38,11 @@
 	 * Verify Cookie Consent and Google Consent Mode flags
 	 */
 	function hasConsent() {
+		let consentPluginDetected = false;
+
 		// A. Check Google Consent Mode v2 (if analytics storage is explicitly denied)
 		if ( window.google_tag_data && window.google_tag_data.ics && window.google_tag_data.ics.entries ) {
+			consentPluginDetected = true;
 			const storage = window.google_tag_data.ics.entries.analytics_storage;
 			if ( storage && ( storage.current === false || storage.current === 'denied' ) ) {
 				return false;
@@ -48,23 +51,38 @@
 
 		// B. Complianz Cookie Consent plugin check
 		const complianz = getCookie('complianz_consent_status');
-		if ( complianz && complianz !== 'allow' ) {
-			return false;
+		if ( complianz ) {
+			consentPluginDetected = true;
+			if ( complianz !== 'allow' ) {
+				return false;
+			}
 		}
 
 		// C. GDPR Cookie Consent (CookieLawInfo) check
 		const cli = getCookie('viewed_cookie_policy');
-		if ( cli && cli !== 'yes' ) {
-			return false;
+		if ( cli ) {
+			consentPluginDetected = true;
+			if ( cli !== 'yes' ) {
+				return false;
+			}
 		}
 
 		// D. Borlabs Cookie check (must contain 'statistics' permission)
 		const borlabs = getCookie('borlabs-cookie');
-		if ( borlabs && borlabs.indexOf('statistics') === -1 ) {
+		if ( borlabs ) {
+			consentPluginDetected = true;
+			if ( borlabs.indexOf('statistics') === -1 ) {
+				return false;
+			}
+		}
+
+		// If strict GDPR consent is required and no consent plugin is active, deny tracking by default (Strict Opt-In)
+		const requireConsent = parseInt( window.tracklyTrackerData.require_consent ) === 1;
+		if ( requireConsent && ! consentPluginDetected ) {
 			return false;
 		}
 
-		return true; // Default to true if no active consent plugin blocking is detected
+		return true; // Default to true if consent is not strictly required and no blocking cookies are detected
 	}
 
 	/**
@@ -151,7 +169,8 @@
 			fetch(window.tracklyTrackerData.rest_url + '/record-click', {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'X-WP-Nonce': window.tracklyTrackerData.nonce
 				},
 				body: JSON.stringify(click),
 				keepalive: true
@@ -203,4 +222,5 @@
 		}
 		return path.join(' > ');
 	}
+	window.tracklyGetUniqueSelector = getUniqueSelector;
 })();

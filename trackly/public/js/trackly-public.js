@@ -263,8 +263,8 @@
 	function renderHeatmap(clicks) {
 		clearHeatmapDots();
 		
-		// Injects temporary body styling to ensure correct absolute offsets (Fixes Heatmap alignment QA bug)
-		$('body').css('position', 'relative');
+		const $overlay = $('<div id="trackly-heatmap-overlay"></div>');
+		const dots = [];
 		
 		clicks.forEach(function(click) {
 			const $dot = $('<div class="trackly-heatmap-dot"></div>');
@@ -272,13 +272,15 @@
 				left: click.click_x_pct + '%',
 				top: click.click_y_pct + '%'
 			});
-			$('body').append($dot);
+			dots.push($dot);
 		});
+		
+		$overlay.append(dots);
+		$('body').append($overlay);
 	}
 
 	function clearHeatmapDots() {
-		$('.trackly-heatmap-dot').remove();
-		$('body').css('position', ''); // Restores body static positioning on heatmap close
+		$('#trackly-heatmap-overlay').remove();
 		if (heatmapActive) {
 			$('#trackly-toggle-heatmap-btn').html('<span class="dashicons dashicons-visibility"></span> Show Heatmap').removeClass('secondary');
 			$('.heatmap-info-stats').fadeOut(200);
@@ -320,7 +322,7 @@
 		e.preventDefault();
 		e.stopPropagation();
 
-		const selector = getUniqueSelector(e.target);
+		const selector = window.tracklyGetUniqueSelector(e.target);
 		$(e.target).removeClass('trackly-selector-hovered');
 		exitSelectorMode();
 
@@ -348,44 +350,7 @@
 		$(document).off('click.tracklySelector');
 	}
 
-	/**
-	 * Unique CSS Selector builder supporting SVG elements class names
-	 */
-	function getUniqueSelector(el) {
-		if (!(el instanceof HTMLElement)) return '';
-		let path = [];
-		while (el.nodeType === Node.ELEMENT_NODE) {
-			let selector = el.nodeName.toLowerCase();
-			if (el.id) {
-				selector += '#' + el.id;
-				path.unshift(selector);
-				break;
-			} else {
-				let className = '';
-				if (typeof el.className === 'string') {
-					className = el.className.trim();
-				} else if (el.getAttribute) {
-					className = (el.getAttribute('class') || '').trim();
-				}
 
-				className = className.replace('.trackly-selector-hovered', '');
-				if (className) {
-					selector += '.' + className.replace(/\s+/g, '.');
-				}
-				
-				let sib = el, nth = 1;
-				while (sib = sib.previousElementSibling) {
-					if (sib.nodeName.toLowerCase() === el.nodeName.toLowerCase()) nth++;
-				}
-				if (nth !== 1) {
-					selector += `:nth-of-type(${nth})`;
-				}
-			}
-			path.unshift(selector);
-			el = el.parentNode;
-		}
-		return path.join(' > ');
-	}
 
 	/**
 	 * Save custom event mapping to database

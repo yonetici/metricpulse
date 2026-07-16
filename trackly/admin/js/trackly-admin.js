@@ -9,6 +9,18 @@
 	let deviceChart = null;
 	let realtimeInterval = null;
 
+	function escapeHtml(string) {
+		return String(string).replace(/[&<>"']/g, function(s) {
+			return {
+				'&': '&amp;',
+				'<': '&lt;',
+				'>': '&gt;',
+				'"': '&quot;',
+				"'": '&#39;'
+			}[s];
+		});
+	}
+
 	$(document).ready(function() {
 		initTabs();
 		initCharts();
@@ -283,6 +295,7 @@
 
 		pagesData.rows.forEach(function(row) {
 			const path = row.dimensionValues[0].value;
+			const escPath = escapeHtml(path);
 			const views = parseInt(row.metricValues[0].value).toLocaleString();
 			const users = parseInt(row.metricValues[1].value).toLocaleString();
 			const bounce = (parseFloat(row.metricValues[2].value) * 100).toFixed(1) + '%';
@@ -294,7 +307,7 @@
 
 			const html = `
 				<tr>
-					<td><a href="${path}" target="_blank" class="trackly-page-link"><code>${path}</code></a></td>
+					<td><a href="${escPath}" target="_blank" class="trackly-page-link"><code>${escPath}</code></a></td>
 					<td><strong>${views}</strong></td>
 					<td>${users}</td>
 					<td>${bounce}</td>

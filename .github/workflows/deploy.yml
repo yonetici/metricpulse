@@ -1,8 +1,17 @@
 name: Deploy to WordPress.org SVN
 
+# DISABLED until the plugin is approved on WordPress.org.
+# Auto-deploy on release is intentionally turned off so publishing a GitHub
+# release does not fail against a not-yet-existing SVN repository.
+# To re-enable after approval, restore the release trigger below:
+#
+#   on:
+#     release:
+#       types: [published]
+#
+# For now the workflow only runs on manual dispatch (Actions tab -> Run workflow).
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
 
 jobs:
   deploy:

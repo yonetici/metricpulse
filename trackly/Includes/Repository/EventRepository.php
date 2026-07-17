@@ -38,20 +38,18 @@ class EventRepository {
 		$table_name = $this->table_name;
 
 		// v1.1 to v1.2 migration column cleanup protection
+		// phpcs:disable WordPress.DB.PreparedSQL
 		if ( $this->wpdb->get_var( $this->wpdb->prepare( "SHOW TABLES LIKE %s", $table_name ) ) ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 			$column_check_width = $this->wpdb->get_results( "SHOW COLUMNS FROM $table_name LIKE 'screen_width'" );
 			if ( ! empty( $column_check_width ) ) {
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 				$this->wpdb->query( "ALTER TABLE $table_name DROP COLUMN screen_width" );
 			}
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 			$column_check_height = $this->wpdb->get_results( "SHOW COLUMNS FROM $table_name LIKE 'screen_height'" );
 			if ( ! empty( $column_check_height ) ) {
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 				$this->wpdb->query( "ALTER TABLE $table_name DROP COLUMN screen_height" );
 			}
 		}
+		// phpcs:enable
 
 		$charset_collate = $this->wpdb->get_charset_collate();
 
@@ -107,7 +105,7 @@ class EventRepository {
 	public function get_clicks_for_page( string $page_url ): array {
 		$clean_url = esc_url_raw( $page_url );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:disable WordPress.DB.PreparedSQL
 		$results = $this->wpdb->get_results(
 			$this->wpdb->prepare(
 				"SELECT click_x_pct, click_y_pct, element_selector FROM {$this->table_name} WHERE page_url = %s ORDER BY created_at DESC LIMIT 1000",
@@ -115,6 +113,7 @@ class EventRepository {
 			),
 			ARRAY_A
 		);
+		// phpcs:enable
 
 		$results = is_array( $results ) ? $results : array();
 
@@ -138,13 +137,14 @@ class EventRepository {
 			$max_iterations = 100; // Cap execution safety to avoid infinite loops
 
 			for ( $i = 0; $i < $max_iterations; $i++ ) {
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+				// phpcs:disable WordPress.DB.PreparedSQL
 				$deleted = $this->wpdb->query(
 					$this->wpdb->prepare(
 						"DELETE FROM {$this->table_name} WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY) LIMIT %d",
 						$limit
 					)
 				);
+				// phpcs:enable
 
 				if ( false === $deleted || $deleted === 0 ) {
 					break;
@@ -169,18 +169,16 @@ class EventRepository {
 
 		// Execute schema upgrades if the user was running an older version
 		if ( version_compare( $from_version, '1.0.0', '<' ) ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			// phpcs:disable WordPress.DB.PreparedSQL
 			$index_check = $this->wpdb->get_results( "SHOW INDEX FROM {$this->table_name} WHERE Key_name = 'page_url_created'" );
 			if ( empty( $index_check ) ) {
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 				$this->wpdb->query( "ALTER TABLE {$this->table_name} ADD INDEX page_url_created (page_url(191), created_at)" );
 			}
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 			$created_at_check = $this->wpdb->get_results( "SHOW INDEX FROM {$this->table_name} WHERE Key_name = 'created_at'" );
 			if ( empty( $created_at_check ) ) {
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 				$this->wpdb->query( "ALTER TABLE {$this->table_name} ADD INDEX created_at (created_at)" );
 			}
+			// phpcs:enable
 		}
 	}
 }

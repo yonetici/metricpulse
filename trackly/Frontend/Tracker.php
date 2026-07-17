@@ -238,8 +238,7 @@ class Tracker {
 		<!-- Trackly Custom GA4 Tracking Events -->
 		<script type="text/javascript">
 			document.addEventListener('DOMContentLoaded', function() {
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-				const customEvents = <?php echo $json_events; ?>;
+				const customEvents = <?php echo $json_events; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
 				if (!customEvents || !Array.isArray(customEvents)) return;
 
 				customEvents.forEach(function(item) {

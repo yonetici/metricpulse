@@ -93,7 +93,7 @@ class Tracker {
 		?>
 		<div id="trackly-stats-bar-wrapper">
 			<!-- Floating Toggle Button -->
-			<button id="trackly-stats-toggle-btn" title="<?php esc_attr_e( 'Trackly', 'trackly' ); ?>">
+			<button id="trackly-stats-toggle-btn" title="<?php esc_attr_e( 'Trackly', 'metricpulse' ); ?>">
 				<span class="dashicons dashicons-chart-area"></span>
 			</button>
 
@@ -103,10 +103,10 @@ class Tracker {
 				<div class="trackly-panel-header">
 					<div class="trackly-panel-logo">
 						<span class="dashicons dashicons-chart-area"></span>
-						<h4><?php esc_html_e( 'Trackly', 'trackly' ); ?></h4>
+						<h4><?php esc_html_e( 'Trackly', 'metricpulse' ); ?></h4>
 					</div>
 					<div class="trackly-panel-controls">
-						<button id="trackly-panel-minimize-btn" title="<?php esc_attr_e( 'Hide', 'trackly' ); ?>">
+						<button id="trackly-panel-minimize-btn" title="<?php esc_attr_e( 'Hide', 'metricpulse' ); ?>">
 							<span class="dashicons dashicons-minus"></span>
 						</button>
 					</div>
@@ -114,95 +114,95 @@ class Tracker {
 
 				<!-- Tabs -->
 				<div class="trackly-panel-tabs">
-					<button class="trackly-panel-tab active" data-tab="stats"><?php esc_html_e( 'Statistics', 'trackly' ); ?></button>
-					<button class="trackly-panel-tab" data-tab="heatmap"><?php esc_html_e( 'Click Heatmap', 'trackly' ); ?></button>
-					<button class="trackly-panel-tab" data-tab="builder"><?php esc_html_e( 'Event Builder', 'trackly' ); ?></button>
-					<button class="trackly-panel-tab" data-tab="ai"><?php esc_html_e( 'Predictive Insights', 'trackly' ); ?></button>
+					<button class="trackly-panel-tab active" data-tab="stats"><?php esc_html_e( 'Statistics', 'metricpulse' ); ?></button>
+					<button class="trackly-panel-tab" data-tab="heatmap"><?php esc_html_e( 'Click Heatmap', 'metricpulse' ); ?></button>
+					<button class="trackly-panel-tab" data-tab="builder"><?php esc_html_e( 'Event Builder', 'metricpulse' ); ?></button>
+					<button class="trackly-panel-tab" data-tab="ai"><?php esc_html_e( 'Predictive Insights', 'metricpulse' ); ?></button>
 				</div>
 
 				<!-- Stats Tab Content -->
 				<div class="trackly-panel-tab-content active" id="trackly-tab-stats">
-					<p class="trackly-url-indicator"><?php esc_html_e( 'This Page:', 'trackly' ); ?> <code><?php echo esc_html( $current_path ); ?></code></p>
+					<p class="trackly-url-indicator"><?php esc_html_e( 'This Page:', 'metricpulse' ); ?> <code><?php echo esc_html( $current_path ); ?></code></p>
 					
 					<div class="trackly-panel-metrics-grid">
 						<div class="trackly-panel-metric-card">
-							<span class="label"><?php esc_html_e( 'Pageviews', 'trackly' ); ?></span>
+							<span class="label"><?php esc_html_e( 'Pageviews', 'metricpulse' ); ?></span>
 							<h3 id="trackly-p-views">--</h3>
 						</div>
 						<div class="trackly-panel-metric-card">
-							<span class="label"><?php esc_html_e( 'Users', 'trackly' ); ?></span>
+							<span class="label"><?php esc_html_e( 'Users', 'metricpulse' ); ?></span>
 							<h3 id="trackly-p-users">--</h3>
 						</div>
 						<div class="trackly-panel-metric-card">
-							<span class="label"><?php esc_html_e( 'Bounce', 'trackly' ); ?></span>
+							<span class="label"><?php esc_html_e( 'Bounce', 'metricpulse' ); ?></span>
 							<h3 id="trackly-p-bounce">--</h3>
 						</div>
 						<div class="trackly-panel-metric-card">
-							<span class="label"><?php esc_html_e( 'Avg. Duration', 'trackly' ); ?></span>
+							<span class="label"><?php esc_html_e( 'Avg. Duration', 'metricpulse' ); ?></span>
 							<h3 id="trackly-p-duration">--</h3>
 						</div>
 					</div>
 
 					<div class="trackly-panel-info-box">
 						<span class="dashicons dashicons-info"></span>
-						<p><?php esc_html_e( 'Data reflects the average of the last 7 days. Update interval: 1 hour.', 'trackly' ); ?></p>
+						<p><?php esc_html_e( 'Data reflects the average of the last 7 days. Update interval: 1 hour.', 'metricpulse' ); ?></p>
 					</div>
 				</div>
 
 				<!-- Heatmap Tab Content -->
 				<div class="trackly-panel-tab-content" id="trackly-tab-heatmap">
-					<h5><?php esc_html_e( 'Local Click Heatmap', 'trackly' ); ?></h5>
-					<p><?php esc_html_e( 'Visually track the click density of elements on this page.', 'trackly' ); ?></p>
+					<h5><?php esc_html_e( 'Local Click Heatmap', 'metricpulse' ); ?></h5>
+					<p><?php esc_html_e( 'Visually track the click density of elements on this page.', 'metricpulse' ); ?></p>
 					
 					<div class="trackly-action-buttons">
 						<button id="trackly-toggle-heatmap-btn" class="trackly-p-btn">
-							<span class="dashicons dashicons-visibility"></span> <?php esc_html_e( 'Show Heatmap', 'trackly' ); ?>
+							<span class="dashicons dashicons-visibility"></span> <?php esc_html_e( 'Show Heatmap', 'metricpulse' ); ?>
 						</button>
-						<button id="trackly-clear-heatmap-btn" class="trackly-p-btn secondary"><?php esc_html_e( 'Clear', 'trackly' ); ?></button>
+						<button id="trackly-clear-heatmap-btn" class="trackly-p-btn secondary"><?php esc_html_e( 'Clear', 'metricpulse' ); ?></button>
 					</div>
 					<div class="heatmap-info-stats">
-						<?php esc_html_e( 'Recorded Clicks:', 'trackly' ); ?> <strong id="trackly-heatmap-click-count">0</strong>
+						<?php esc_html_e( 'Recorded Clicks:', 'metricpulse' ); ?> <strong id="trackly-heatmap-click-count">0</strong>
 					</div>
 				</div>
 
 				<!-- Event Builder Tab Content -->
 				<div class="trackly-panel-tab-content" id="trackly-tab-builder">
-					<h5><?php esc_html_e( 'GA4 Event Builder', 'trackly' ); ?></h5>
-					<p><?php esc_html_e( 'Create custom GA4 tracking events by selecting buttons or links on the page.', 'trackly' ); ?></p>
+					<h5><?php esc_html_e( 'GA4 Event Builder', 'metricpulse' ); ?></h5>
+					<p><?php esc_html_e( 'Create custom GA4 tracking events by selecting buttons or links on the page.', 'metricpulse' ); ?></p>
 					
 					<div id="trackly-builder-setup">
 						<button id="trackly-start-selector-btn" class="trackly-p-btn">
-							<span class="dashicons dashicons-mouse"></span> <?php esc_html_e( 'Start Element Selection', 'trackly' ); ?>
+							<span class="dashicons dashicons-mouse"></span> <?php esc_html_e( 'Start Element Selection', 'metricpulse' ); ?>
 						</button>
-						<p class="selector-notice description"><?php esc_html_e( 'Click the button, then hover over any button/link you wish to track on the page.', 'trackly' ); ?></p>
+						<p class="selector-notice description"><?php esc_html_e( 'Click the button, then hover over any button/link you wish to track on the page.', 'metricpulse' ); ?></p>
 					</div>
 
 					<div id="trackly-builder-form" class="trackly-hidden">
 						<div class="trackly-p-form-group">
-							<label><?php esc_html_e( 'Selected Element:', 'trackly' ); ?></label>
+							<label><?php esc_html_e( 'Selected Element:', 'metricpulse' ); ?></label>
 							<code id="trackly-selected-selector-display">div > a.btn</code>
 						</div>
 						<div class="trackly-p-form-group">
-							<label for="trackly-p-event-name"><?php esc_html_e( 'GA4 Event Name:', 'trackly' ); ?></label>
-							<input type="text" id="trackly-p-event-name" placeholder="<?php esc_attr_e( 'e.g., cta_button_click', 'trackly' ); ?>">
+							<label for="trackly-p-event-name"><?php esc_html_e( 'GA4 Event Name:', 'metricpulse' ); ?></label>
+							<input type="text" id="trackly-p-event-name" placeholder="<?php esc_attr_e( 'e.g., cta_button_click', 'metricpulse' ); ?>">
 						</div>
 						<div class="trackly-action-buttons">
-							<button id="trackly-save-event-btn" class="trackly-p-btn"><?php esc_html_e( 'Save', 'trackly' ); ?></button>
-							<button id="trackly-cancel-event-btn" class="trackly-p-btn secondary"><?php esc_html_e( 'Cancel', 'trackly' ); ?></button>
+							<button id="trackly-save-event-btn" class="trackly-p-btn"><?php esc_html_e( 'Save', 'metricpulse' ); ?></button>
+							<button id="trackly-cancel-event-btn" class="trackly-p-btn secondary"><?php esc_html_e( 'Cancel', 'metricpulse' ); ?></button>
 						</div>
 					</div>
 				</div>
 
 				<!-- Predictive Insights Tab Content -->
 				<div class="trackly-panel-tab-content" id="trackly-tab-ai">
-					<h5><?php esc_html_e( 'Predictive Page Analysis', 'trackly' ); ?></h5>
+					<h5><?php esc_html_e( 'Predictive Page Analysis', 'metricpulse' ); ?></h5>
 					<div class="trackly-ai-container">
 						<div id="trackly-ai-insights-content">
 							<div class="ai-insight-item">
 								<span class="dashicons dashicons-awards ai-icon purple"></span>
 								<div class="ai-text">
-									<strong><?php esc_html_e( 'Content Performance', 'trackly' ); ?></strong>
-									<p><?php esc_html_e( 'Predictive anomaly engine is calculating statistics...', 'trackly' ); ?></p>
+									<strong><?php esc_html_e( 'Content Performance', 'metricpulse' ); ?></strong>
+									<p><?php esc_html_e( 'Predictive anomaly engine is calculating statistics...', 'metricpulse' ); ?></p>
 								</div>
 							</div>
 						</div>
@@ -212,7 +212,7 @@ class Tracker {
 				<!-- Footer links -->
 				<div class="trackly-panel-footer">
 					<a href="<?php echo esc_url( admin_url( 'admin.php?page=' . $this->plugin_name ) ); ?>" target="_blank">
-						<span class="dashicons dashicons-external"></span> <?php esc_html_e( 'Go to Dashboard', 'trackly' ); ?>
+						<span class="dashicons dashicons-external"></span> <?php esc_html_e( 'Go to Dashboard', 'metricpulse' ); ?>
 					</a>
 				</div>
 			</div>

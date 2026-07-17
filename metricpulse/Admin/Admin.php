@@ -83,7 +83,7 @@ class Admin {
 			if ( ! empty( $decrypted ) && null !== json_decode( $decrypted ) ) {
 				return $value;
 			}
-			add_settings_error( 'trackly_credentials', 'invalid_json', __( 'Invalid JSON format.', 'trackly' ) );
+			add_settings_error( 'trackly_credentials', 'invalid_json', __( 'Invalid JSON format.', 'metricpulse' ) );
 			return get_option( 'trackly_credentials', '' );
 		}
 
@@ -109,8 +109,8 @@ class Admin {
 	 */
 	public function add_plugin_admin_menu() {
 		add_menu_page(
-			__( 'Trackly', 'trackly' ),
-			__( 'Trackly', 'trackly' ),
+			__( 'Trackly', 'metricpulse' ),
+			__( 'Trackly', 'metricpulse' ),
 			'manage_options',
 			$this->plugin_name,
 			array( $this, 'display_plugin_admin_page' ),
@@ -179,15 +179,15 @@ class Admin {
 			<header class="trackly-header">
 				<div class="trackly-logo-area">
 					<span class="dashicons dashicons-chart-area trackly-logo-icon"></span>
-					<h1><?php esc_html_e( 'Trackly', 'trackly' ); ?> <span class="trackly-badge">v<?php echo esc_html( $this->version ); ?></span></h1>
+					<h1><?php esc_html_e( 'Trackly', 'metricpulse' ); ?> <span class="trackly-badge">v<?php echo esc_html( $this->version ); ?></span></h1>
 				</div>
 				<div class="trackly-status-indicator">
 					<?php if ( $demo_mode === 'yes' ) : ?>
-						<span class="trackly-status demo"><span class="dot"></span> <?php esc_html_e( 'Demo Mode Active', 'trackly' ); ?></span>
+						<span class="trackly-status demo"><span class="dot"></span> <?php esc_html_e( 'Demo Mode Active', 'metricpulse' ); ?></span>
 					<?php elseif ( $is_connected ) : ?>
-						<span class="trackly-status connected"><span class="dot"></span> <?php esc_html_e( 'GA4 Connected', 'trackly' ); ?></span>
+						<span class="trackly-status connected"><span class="dot"></span> <?php esc_html_e( 'GA4 Connected', 'metricpulse' ); ?></span>
 					<?php else : ?>
-						<span class="trackly-status disconnected"><span class="dot"></span> <?php esc_html_e( 'GA4 Disconnected', 'trackly' ); ?></span>
+						<span class="trackly-status disconnected"><span class="dot"></span> <?php esc_html_e( 'GA4 Disconnected', 'metricpulse' ); ?></span>
 					<?php endif; ?>
 				</div>
 			</header>
@@ -195,10 +195,10 @@ class Admin {
 			<!-- Tabs/Navigation -->
 			<div class="trackly-tabs">
 				<button class="trackly-tab-btn active" data-target="dashboard-tab">
-					<span class="dashicons dashicons-dashboard"></span> <?php esc_html_e( 'Dashboard', 'trackly' ); ?>
+					<span class="dashicons dashicons-dashboard"></span> <?php esc_html_e( 'Dashboard', 'metricpulse' ); ?>
 				</button>
 				<button class="trackly-tab-btn" data-target="settings-tab">
-					<span class="dashicons dashicons-admin-generic"></span> <?php esc_html_e( 'Settings', 'trackly' ); ?>
+					<span class="dashicons dashicons-admin-generic"></span> <?php esc_html_e( 'Settings', 'metricpulse' ); ?>
 				</button>
 			</div>
 
@@ -207,12 +207,12 @@ class Admin {
 				<!-- Real-time Banner -->
 				<div class="trackly-card trackly-realtime-card">
 					<div class="trackly-realtime-content">
-						<h3><?php esc_html_e( 'Active Visitors', 'trackly' ); ?></h3>
+						<h3><?php esc_html_e( 'Active Visitors', 'metricpulse' ); ?></h3>
 						<div class="trackly-realtime-value">
 							<span id="trackly-active-users">--</span>
 							<span class="pulse-ring"></span>
 						</div>
-						<p><?php esc_html_e( 'Active Visitors', 'trackly' ); ?></p>
+						<p><?php esc_html_e( 'Active Visitors', 'metricpulse' ); ?></p>
 					</div>
 					<div class="trackly-realtime-spark"></div>
 				</div>
@@ -221,28 +221,28 @@ class Admin {
 				<div class="trackly-grid">
 					<div class="trackly-card stat-card">
 						<div class="stat-info">
-							<h4><?php esc_html_e( 'Pageviews', 'trackly' ); ?></h4>
+							<h4><?php esc_html_e( 'Pageviews', 'metricpulse' ); ?></h4>
 							<h2 id="trackly-stat-views">--</h2>
 						</div>
 						<span class="dashicons dashicons-visibility stat-icon views"></span>
 					</div>
 					<div class="trackly-card stat-card">
 						<div class="stat-info">
-							<h4><?php esc_html_e( 'Unique Visitors', 'trackly' ); ?></h4>
+							<h4><?php esc_html_e( 'Unique Visitors', 'metricpulse' ); ?></h4>
 							<h2 id="trackly-stat-users">--</h2>
 						</div>
 						<span class="dashicons dashicons-groups stat-icon users"></span>
 					</div>
 					<div class="trackly-card stat-card">
 						<div class="stat-info">
-							<h4><?php esc_html_e( 'Bounce Rate (Unengaged)', 'trackly' ); ?></h4>
+							<h4><?php esc_html_e( 'Bounce Rate (Unengaged)', 'metricpulse' ); ?></h4>
 							<h2 id="trackly-stat-bounce">--</h2>
 						</div>
 						<span class="dashicons dashicons-exit stat-icon bounce"></span>
 					</div>
 					<div class="trackly-card stat-card">
 						<div class="stat-info">
-							<h4><?php esc_html_e( 'Average Session Duration', 'trackly' ); ?></h4>
+							<h4><?php esc_html_e( 'Average Session Duration', 'metricpulse' ); ?></h4>
 							<h2 id="trackly-stat-duration">--</h2>
 						</div>
 						<span class="dashicons dashicons-clock stat-icon duration"></span>
@@ -253,18 +253,18 @@ class Admin {
 				<div class="trackly-card trackly-latency-notice">
 					<span class="dashicons dashicons-info trackly-notice-icon"></span>
 					<div class="trackly-notice-text">
-						<strong><?php esc_html_e( 'GA4 Data Latency Notice', 'trackly' ); ?></strong>
-						<p><?php esc_html_e( 'Google Analytics 4 (GA4) requires 24-48 hours to process data. Therefore, traffic metrics for yesterday and today may appear lower or incomplete. This latency is temporary.', 'trackly' ); ?></p>
+						<strong><?php esc_html_e( 'GA4 Data Latency Notice', 'metricpulse' ); ?></strong>
+						<p><?php esc_html_e( 'Google Analytics 4 (GA4) requires 24-48 hours to process data. Therefore, traffic metrics for yesterday and today may appear lower or incomplete. This latency is temporary.', 'metricpulse' ); ?></p>
 					</div>
 				</div>
 
 				<!-- Main Graph -->
 				<div class="trackly-card main-chart-card">
 					<div class="chart-header">
-						<h3><?php esc_html_e( 'Visitor Traffic Trend', 'trackly' ); ?></h3>
+						<h3><?php esc_html_e( 'Visitor Traffic Trend', 'metricpulse' ); ?></h3>
 						<div class="chart-actions">
-							<button class="trackly-chart-filter-btn active" data-days="7"><?php esc_html_e( 'Last 7 Days', 'trackly' ); ?></button>
-							<button class="trackly-chart-filter-btn" data-days="30"><?php esc_html_e( 'Last 30 Days', 'trackly' ); ?></button>
+							<button class="trackly-chart-filter-btn active" data-days="7"><?php esc_html_e( 'Last 7 Days', 'metricpulse' ); ?></button>
+							<button class="trackly-chart-filter-btn" data-days="30"><?php esc_html_e( 'Last 30 Days', 'metricpulse' ); ?></button>
 						</div>
 					</div>
 					<div class="chart-container">
@@ -275,32 +275,32 @@ class Admin {
 				<!-- Bottom Grid (Sources & Devices) -->
 				<div class="trackly-grid double">
 					<div class="trackly-card chart-half">
-						<h3><?php esc_html_e( 'Traffic Sources', 'trackly' ); ?></h3>
+						<h3><?php esc_html_e( 'Traffic Sources', 'metricpulse' ); ?></h3>
 						<div id="trackly-source-chart"></div>
 					</div>
 					<div class="trackly-card chart-half">
-						<h3><?php esc_html_e( 'Device Distribution', 'trackly' ); ?></h3>
+						<h3><?php esc_html_e( 'Device Distribution', 'metricpulse' ); ?></h3>
 						<div id="trackly-device-chart"></div>
 					</div>
 				</div>
 
 				<!-- Top Pages Table -->
 				<div class="trackly-card table-card">
-					<h3><?php esc_html_e( 'Top Viewed Pages', 'trackly' ); ?></h3>
+					<h3><?php esc_html_e( 'Top Viewed Pages', 'metricpulse' ); ?></h3>
 					<div class="trackly-table-wrapper">
 						<table class="trackly-table" id="trackly-pages-table">
 							<thead>
 								<tr>
-									<th><?php esc_html_e( 'Page URL', 'trackly' ); ?></th>
-									<th><?php esc_html_e( 'Pageviews', 'trackly' ); ?></th>
-									<th><?php esc_html_e( 'Users', 'trackly' ); ?></th>
-									<th><?php esc_html_e( 'Bounce Rate', 'trackly' ); ?></th>
-									<th><?php esc_html_e( 'Avg. Duration', 'trackly' ); ?></th>
+									<th><?php esc_html_e( 'Page URL', 'metricpulse' ); ?></th>
+									<th><?php esc_html_e( 'Pageviews', 'metricpulse' ); ?></th>
+									<th><?php esc_html_e( 'Users', 'metricpulse' ); ?></th>
+									<th><?php esc_html_e( 'Bounce Rate', 'metricpulse' ); ?></th>
+									<th><?php esc_html_e( 'Avg. Duration', 'metricpulse' ); ?></th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr>
-									<td colspan="5" class="loading-td"><?php esc_html_e( 'Loading...', 'trackly' ); ?></td>
+									<td colspan="5" class="loading-td"><?php esc_html_e( 'Loading...', 'metricpulse' ); ?></td>
 								</tr>
 							</tbody>
 						</table>
@@ -311,7 +311,7 @@ class Admin {
 			<!-- Settings Tab Content (WordPress Settings API Integrated) -->
 			<div id="settings-tab" class="trackly-tab-content">
 				<div class="trackly-card settings-card">
-					<h3><?php esc_html_e( 'Google Analytics Integration Settings', 'trackly' ); ?></h3>
+					<h3><?php esc_html_e( 'Google Analytics Integration Settings', 'metricpulse' ); ?></h3>
 					<form method="post" action="options.php">
 						<?php
 						settings_fields( 'trackly_settings_group' );
@@ -324,8 +324,8 @@ class Admin {
 								<input type="checkbox" name="trackly_demo_mode" value="yes" <?php checked( $demo_mode, 'yes' ); ?>>
 								<span class="trackly-switch-slider"></span>
 								<div class="label-text">
-									<strong><?php esc_html_e( 'Enable Demo (Mock) Mode', 'trackly' ); ?></strong>
-									<p class="description"><?php esc_html_e( 'Keep this enabled to test the plugin with mock data without connecting to Google Analytics.', 'trackly' ); ?></p>
+									<strong><?php esc_html_e( 'Enable Demo (Mock) Mode', 'metricpulse' ); ?></strong>
+									<p class="description"><?php esc_html_e( 'Keep this enabled to test the plugin with mock data without connecting to Google Analytics.', 'metricpulse' ); ?></p>
 								</div>
 							</label>
 						</div>
@@ -336,37 +336,37 @@ class Admin {
 								<input type="checkbox" name="trackly_require_consent" value="yes" <?php checked( $require_consent, 'yes' ); ?>>
 								<span class="trackly-switch-slider"></span>
 								<div class="label-text">
-									<strong><?php esc_html_e( 'Require Cookie Consent (Strict GDPR)', 'trackly' ); ?></strong>
-									<p class="description"><?php esc_html_e( 'If enabled, the tracker will start in opt-in mode and will block click telemetry until consent is explicitly granted via Borlabs, Complianz, CLI, or Google Consent Mode v2.', 'trackly' ); ?></p>
+									<strong><?php esc_html_e( 'Require Cookie Consent (Strict GDPR)', 'metricpulse' ); ?></strong>
+									<p class="description"><?php esc_html_e( 'If enabled, the tracker will start in opt-in mode and will block click telemetry until consent is explicitly granted via Borlabs, Complianz, CLI, or Google Consent Mode v2.', 'metricpulse' ); ?></p>
 								</div>
 							</label>
 						</div>
 
 						<div class="trackly-form-group">
-							<label for="trackly_property_id"><?php esc_html_e( 'GA4 Property ID', 'trackly' ); ?></label>
+							<label for="trackly_property_id"><?php esc_html_e( 'GA4 Property ID', 'metricpulse' ); ?></label>
 							<input type="text" id="trackly_property_id" name="trackly_property_id" value="<?php echo esc_attr( $property_id ); ?>" placeholder="e.g. 382901248" class="regular-text">
-							<p class="description"><?php esc_html_e( 'The numeric Property ID of your Google Analytics property (Can be found in Admin > Property Settings).', 'trackly' ); ?></p>
+							<p class="description"><?php esc_html_e( 'The numeric Property ID of your Google Analytics property (Can be found in Admin > Property Settings).', 'metricpulse' ); ?></p>
 						</div>
 
 						<div class="trackly-form-group">
-							<label for="trackly_credentials"><?php esc_html_e( 'Service Account JSON Key', 'trackly' ); ?></label>
+							<label for="trackly_credentials"><?php esc_html_e( 'Service Account JSON Key', 'metricpulse' ); ?></label>
 							<textarea id="trackly_credentials" name="trackly_credentials" rows="8" class="large-text code" placeholder='{"type": "service_account", ...}'><?php echo esc_textarea( $credentials ); ?></textarea>
-							<p class="description"><?php esc_html_e( 'Paste the contents of the Service Account JSON key file you created in the Google Cloud Console. Make sure to add this service account\'s email as a Viewer to your GA4 property.', 'trackly' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Paste the contents of the Service Account JSON key file you created in the Google Cloud Console. Make sure to add this service account\'s email as a Viewer to your GA4 property.', 'metricpulse' ); ?></p>
 						</div>
 
 						<!-- Sampling Rate Option Selector to prevent DB bloat -->
 						<div class="trackly-form-group">
-							<label for="trackly_sampling_rate"><?php esc_html_e( 'Click Sampling Rate', 'trackly' ); ?></label>
+							<label for="trackly_sampling_rate"><?php esc_html_e( 'Click Sampling Rate', 'metricpulse' ); ?></label>
 							<select id="trackly_sampling_rate" name="trackly_sampling_rate">
-								<option value="100" <?php selected( $sampling_rate, '100' ); ?>><?php esc_html_e( '100% (Record all clicks)', 'trackly' ); ?></option>
-								<option value="50" <?php selected( $sampling_rate, '50' ); ?>><?php esc_html_e( '50% (Record half of all clicks)', 'trackly' ); ?></option>
-								<option value="25" <?php selected( $sampling_rate, '25' ); ?>><?php esc_html_e( '25% (Record a quarter of all clicks)', 'trackly' ); ?></option>
-								<option value="10" <?php selected( $sampling_rate, '10' ); ?>><?php esc_html_e( '10% (Record only 10% of clicks - Recommended for high traffic sites)', 'trackly' ); ?></option>
+								<option value="100" <?php selected( $sampling_rate, '100' ); ?>><?php esc_html_e( '100% (Record all clicks)', 'metricpulse' ); ?></option>
+								<option value="50" <?php selected( $sampling_rate, '50' ); ?>><?php esc_html_e( '50% (Record half of all clicks)', 'metricpulse' ); ?></option>
+								<option value="25" <?php selected( $sampling_rate, '25' ); ?>><?php esc_html_e( '25% (Record a quarter of all clicks)', 'metricpulse' ); ?></option>
+								<option value="10" <?php selected( $sampling_rate, '10' ); ?>><?php esc_html_e( '10% (Record only 10% of clicks - Recommended for high traffic sites)', 'metricpulse' ); ?></option>
 							</select>
-							<p class="description"><?php esc_html_e( 'For high traffic sites, you can reduce the click tracking frequency to prevent database bloat. Sampling runs on a per-session basis.', 'trackly' ); ?></p>
+							<p class="description"><?php esc_html_e( 'For high traffic sites, you can reduce the click tracking frequency to prevent database bloat. Sampling runs on a per-session basis.', 'metricpulse' ); ?></p>
 						</div>
 
-						<button type="submit" class="trackly-btn trackly-btn-primary"><?php esc_html_e( 'Save Settings', 'trackly' ); ?></button>
+						<button type="submit" class="trackly-btn trackly-btn-primary"><?php esc_html_e( 'Save Settings', 'metricpulse' ); ?></button>
 					</form>
 				</div>
 			</div>
@@ -651,7 +651,7 @@ class Admin {
 	public function get_page_stats_callback( $request ) {
 		$url = esc_url_raw( $request->get_param( 'url' ) );
 		if ( empty( $url ) ) {
-			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'URL parameter required.', 'trackly' ) ), 400 );
+			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'URL parameter required.', 'metricpulse' ) ), 400 );
 		}
 
 		$path = wp_parse_url( $url, PHP_URL_PATH );
@@ -731,14 +731,14 @@ class Admin {
 		if ( false === $clicks ) {
 			set_transient( $transient_key, 1, 60 );
 		} elseif ( $clicks >= 10 ) {
-			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'Rate limit exceeded.', 'trackly' ) ), 429 );
+			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'Rate limit exceeded.', 'metricpulse' ) ), 429 );
 		} else {
 			set_transient( $transient_key, $clicks + 1, 60 );
 		}
 
 		$params = $request->get_json_params();
 		if ( empty( $params['page_url'] ) || ! isset( $params['click_x_pct'] ) || ! isset( $params['click_y_pct'] ) ) {
-			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'Invalid click data.', 'trackly' ) ), 400 );
+			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'Invalid click data.', 'metricpulse' ) ), 400 );
 		}
 
 		$log_result = Database::log_click( array(
@@ -758,7 +758,7 @@ class Admin {
 	public function get_clicks_callback( $request ) {
 		$url = esc_url_raw( $request->get_param( 'url' ) );
 		if ( empty( $url ) ) {
-			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'URL parameter required.', 'trackly' ) ), 400 );
+			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'URL parameter required.', 'metricpulse' ) ), 400 );
 		}
 
 		$clicks = Database::get_clicks_for_page( $url );
@@ -776,13 +776,13 @@ class Admin {
 	public function save_event_callback( $request ) {
 		$params = $request->get_json_params();
 		if ( empty( $params['selector'] ) || empty( $params['event_name'] ) ) {
-			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'Selector and Event Name required.', 'trackly' ) ), 400 );
+			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'Selector and Event Name required.', 'metricpulse' ) ), 400 );
 		}
 
 		$selector = sanitize_text_field( $params['selector'] );
 		// Sanity check CSS selector syntax (blocks HTML tags, curly braces)
 		if ( preg_match( '/[<>\{\}]/i', $selector ) ) {
-			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'Invalid CSS Selector payload.', 'trackly' ) ), 400 );
+			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'Invalid CSS Selector payload.', 'metricpulse' ) ), 400 );
 		}
 
 		$saved_events = get_option( 'trackly_custom_events', array() );
@@ -792,13 +792,13 @@ class Admin {
 
 		// Limit saved events to max 200 elements to prevent options database bloat
 		if ( count( $saved_events ) >= 200 ) {
-			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'Maximum limit of 200 custom events reached.', 'trackly' ) ), 400 );
+			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'Maximum limit of 200 custom events reached.', 'metricpulse' ) ), 400 );
 		}
 
 		// Prevent duplicate selectors
 		foreach ( $saved_events as $event ) {
 			if ( $event['selector'] === $selector ) {
-				return new WP_REST_Response( array( 'success' => false, 'error' => __( 'This CSS selector is already registered.', 'trackly' ) ), 400 );
+				return new WP_REST_Response( array( 'success' => false, 'error' => __( 'This CSS selector is already registered.', 'metricpulse' ) ), 400 );
 			}
 		}
 

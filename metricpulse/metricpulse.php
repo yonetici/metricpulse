@@ -84,7 +84,7 @@ register_deactivation_hook( __FILE__, 'trackly_deactivate' );
 // Run the plugin
 function trackly_run() {
 	// phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound
-	load_plugin_textdomain( 'trackly', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+	load_plugin_textdomain( 'metricpulse', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
 	$plugin = new Trackly\Includes\Core();
 	$plugin->run();

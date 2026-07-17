@@ -160,12 +160,12 @@ class GoogleAnalyticsService {
 
 		$credentials_json = $this->get_credentials_json();
 		if ( empty( $credentials_json ) ) {
-			return new WP_Error( 'no_credentials', __( 'Google Service Account credentials missing.', 'trackly' ) );
+			return new WP_Error( 'no_credentials', __( 'Google Service Account credentials missing.', 'metricpulse' ) );
 		}
 
 		$creds = json_decode( $credentials_json, true );
 		if ( ! is_array( $creds ) || empty( $creds['private_key'] ) || empty( $creds['client_email'] ) ) {
-			return new WP_Error( 'invalid_credentials', __( 'Invalid Google Service Account JSON structure.', 'trackly' ) );
+			return new WP_Error( 'invalid_credentials', __( 'Invalid Google Service Account JSON structure.', 'metricpulse' ) );
 		}
 
 		// Generate JWT
@@ -188,11 +188,11 @@ class GoogleAnalyticsService {
 		$signature = '';
 		$pkey = openssl_pkey_get_private( $creds['private_key'] );
 		if ( ! $pkey ) {
-			return new WP_Error( 'invalid_private_key', __( 'Could not parse private key.', 'trackly' ) );
+			return new WP_Error( 'invalid_private_key', __( 'Could not parse private key.', 'metricpulse' ) );
 		}
 
 		if ( ! openssl_sign( $header_payload, $signature, $pkey, 'SHA256' ) ) {
-			return new WP_Error( 'signature_failed', __( 'Failed to sign JWT.', 'trackly' ) );
+			return new WP_Error( 'signature_failed', __( 'Failed to sign JWT.', 'metricpulse' ) );
 		}
 
 		$jwt = $header_payload . '.' . $this->base64url_encode( $signature );
@@ -212,7 +212,7 @@ class GoogleAnalyticsService {
 
 		$body = json_decode( wp_remote_retrieve_body( $response ), true );
 		if ( empty( $body['access_token'] ) ) {
-			return new WP_Error( 'token_error', isset( $body['error_description'] ) ? $body['error_description'] : __( 'Unknown token error.', 'trackly' ) );
+			return new WP_Error( 'token_error', isset( $body['error_description'] ) ? $body['error_description'] : __( 'Unknown token error.', 'metricpulse' ) );
 		}
 
 		$access_token = $body['access_token'];
@@ -241,7 +241,7 @@ class GoogleAnalyticsService {
 
 		$property_id = get_option( 'trackly_property_id', '' );
 		if ( empty( $property_id ) ) {
-			return new WP_Error( 'no_property', __( 'Google Analytics Property ID is missing.', 'trackly' ) );
+			return new WP_Error( 'no_property', __( 'Google Analytics Property ID is missing.', 'metricpulse' ) );
 		}
 
 		$token = $this->get_access_token();
@@ -269,7 +269,7 @@ class GoogleAnalyticsService {
 		$body = json_decode( $body_raw, true );
 
 		if ( 200 !== $status ) {
-			$msg = isset( $body['error']['message'] ) ? $body['error']['message'] : __( 'Failed to query GA4 Data API.', 'trackly' );
+			$msg = isset( $body['error']['message'] ) ? $body['error']['message'] : __( 'Failed to query GA4 Data API.', 'metricpulse' );
 			return new WP_Error( 'ga_api_error', $msg );
 		}
 

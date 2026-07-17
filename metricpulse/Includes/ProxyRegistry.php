@@ -18,7 +18,7 @@ class ProxyRegistry {
 		if ( ! isset( $schedules['weekly'] ) ) {
 			$schedules['weekly'] = array(
 				'interval' => WEEK_IN_SECONDS, // 604800 seconds
-				'display'  => __( 'Once Weekly', 'trackly' ),
+				'display'  => __( 'Once Weekly', 'metricpulse' ),
 			);
 		}
 		return $schedules;

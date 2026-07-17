@@ -18,7 +18,7 @@ class Core {
 	protected $version;
 
 	public function __construct() {
-		$this->plugin_name = 'trackly';
+		$this->plugin_name = 'metricpulse';
 		$this->version = TRACKLY_VERSION;
 	}
 

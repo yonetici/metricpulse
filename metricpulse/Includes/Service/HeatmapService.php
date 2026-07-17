@@ -85,20 +85,20 @@ class HeatmapService {
 				if ( $anomaly['direction'] === 'high' ) {
 					$insights[] = array(
 						'type'        => 'success',
-						'title'       => __( 'Significant Traffic Spike Detected', 'trackly' ),
+						'title'       => __( 'Significant Traffic Spike Detected', 'metricpulse' ),
 						'description' => sprintf(
 							/* translators: %s: standard deviations value */
-							__( 'Today\'s traffic is %s standard deviations above the 7-day average. Verify active promotion campaigns or organic search ranking spikes.', 'trackly' ),
+							__( 'Today\'s traffic is %s standard deviations above the 7-day average. Verify active promotion campaigns or organic search ranking spikes.', 'metricpulse' ),
 							$dev
 						),
 					);
 				} else {
 					$insights[] = array(
 						'type'        => 'warning',
-						'title'       => __( 'Significant Traffic Drop Detected', 'trackly' ),
+						'title'       => __( 'Significant Traffic Drop Detected', 'metricpulse' ),
 						'description' => sprintf(
 							/* translators: %s: standard deviations value */
-							__( 'Today\'s traffic is %s standard deviations below the 7-day average. Check for connection issues or broken landing pages.', 'trackly' ),
+							__( 'Today\'s traffic is %s standard deviations below the 7-day average. Check for connection issues or broken landing pages.', 'metricpulse' ),
 							$dev
 						),
 					);
@@ -125,10 +125,10 @@ class HeatmapService {
 					if ( $anomaly['direction'] === 'high' && $anomaly['value'] > 65.0 ) {
 						$insights[] = array(
 							'type'        => 'danger',
-							'title'       => __( 'High Bounce Rate Anomaly', 'trackly' ),
+							'title'       => __( 'High Bounce Rate Anomaly', 'metricpulse' ),
 							'description' => sprintf(
 								/* translators: 1: page path, 2: bounce rate percentage, 3: standard deviations value */
-								__( 'Page "%1$s" has a bounce rate of %2$s%% (%3$s standard deviations above average). We suggest reviewing the page layout, load speed, or call-to-actions.', 'trackly' ),
+								__( 'Page "%1$s" has a bounce rate of %2$s%% (%3$s standard deviations above average). We suggest reviewing the page layout, load speed, or call-to-actions.', 'metricpulse' ),
 								esc_html( $page_path ),
 								round( $anomaly['value'], 1 ),
 								$dev
@@ -143,8 +143,8 @@ class HeatmapService {
 		if ( empty( $insights ) ) {
 			$insights[] = array(
 				'type'        => 'info',
-				'title'       => __( 'Stable Page Performance', 'trackly' ),
-				'description' => __( 'All visitor traffic volumes and bounce rate patterns match normal statistical distributions for the current period.', 'trackly' ),
+				'title'       => __( 'Stable Page Performance', 'metricpulse' ),
+				'description' => __( 'All visitor traffic volumes and bounce rate patterns match normal statistical distributions for the current period.', 'metricpulse' ),
 			);
 		}
 

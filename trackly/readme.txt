@@ -8,11 +8,11 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-A modern Google Analytics 4 dashboard and click heatmap tracker client for WordPress with AI insights.
+A modern Google Analytics 4 dashboard and click heatmap tracker client for WordPress with predictive statistical insights.
 
 == Description ==
 
-Trackly is a GDPR-compliant, high-performance plugin that brings Google Analytics 4 reports and click heatmaps directly to your WordPress website. It features a premium administrative analytics dashboard, active traffic and device category metrics, responsive local click heatmaps, and a visual GA4 event builder.
+Trackly is a GDPR-compliant, high-performance plugin that brings Google Analytics 4 reports and click heatmaps directly to your WordPress website. It features a premium administrative analytics dashboard, active traffic and device category metrics, responsive predictive local click heatmaps, machine learning-powered anomaly insights, and a visual GA4 event builder.
 
 This plugin is designed from the ground up for strict performance and security. Standard visitors only download a lightweight, vanilla JavaScript tracker under 5KB (with zero jQuery or external dependencies), while heavy stats overlay interfaces are loaded exclusively for logged-in administrators.
 

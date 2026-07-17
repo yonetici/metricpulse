@@ -96,6 +96,39 @@ class GoogleAnalyticsService {
 	}
 
 	/**
+	 * Get Google Service Account JSON from multiple secure configuration sources.
+	 * Checks constant, environment variables, filesystem secrets, and option table.
+	 */
+	private function get_credentials_json(): string {
+		if ( defined( 'TRACKLY_GA_JSON' ) && ! empty( TRACKLY_GA_JSON ) ) {
+			return TRACKLY_GA_JSON;
+		}
+
+		if ( isset( $_SERVER['TRACKLY_GA_JSON'] ) && ! empty( $_SERVER['TRACKLY_GA_JSON'] ) ) {
+			return $_SERVER['TRACKLY_GA_JSON'];
+		}
+
+		$env_val = getenv( 'TRACKLY_GA_JSON' );
+		if ( $env_val && ! empty( $env_val ) ) {
+			return $env_val;
+		}
+
+		if ( file_exists( '/etc/secrets/trackly.json' ) ) {
+			$file_val = file_get_contents( '/etc/secrets/trackly.json' );
+			if ( $file_val ) {
+				return $file_val;
+			}
+		}
+
+		$credentials_encrypted = get_option( 'trackly_credentials' );
+		if ( ! empty( $credentials_encrypted ) ) {
+			return $this->decrypt_data( (string) $credentials_encrypted );
+		}
+
+		return '';
+	}
+
+	/**
 	 * Check if Demo Mode is active.
 	 */
 	public function is_demo_mode(): bool {
@@ -104,14 +137,9 @@ class GoogleAnalyticsService {
 			return true;
 		}
 
-		// Bypass checks if config constant is defined
-		if ( defined( 'TRACKLY_GA_JSON' ) && ! empty( TRACKLY_GA_JSON ) ) {
-			return false;
-		}
-
-		$credentials_encrypted = get_option( 'trackly_credentials' );
+		$credentials_json = $this->get_credentials_json();
 		$property_id = get_option( 'trackly_property_id' );
-		if ( empty( $credentials_encrypted ) || empty( $property_id ) ) {
+		if ( empty( $credentials_json ) || empty( $property_id ) ) {
 			return true;
 		}
 
@@ -127,15 +155,9 @@ class GoogleAnalyticsService {
 			return $token;
 		}
 
-		// 1. Try loading credentials from constant first (Step 3: Secure constant option)
-		if ( defined( 'TRACKLY_GA_JSON' ) && ! empty( TRACKLY_GA_JSON ) ) {
-			$credentials_json = TRACKLY_GA_JSON;
-		} else {
-			$credentials_encrypted = get_option( 'trackly_credentials' );
-			if ( empty( $credentials_encrypted ) ) {
-				return new WP_Error( 'no_credentials', __( 'Google Service Account credentials missing.', 'trackly' ) );
-			}
-			$credentials_json = $this->decrypt_data( (string) $credentials_encrypted );
+		$credentials_json = $this->get_credentials_json();
+		if ( empty( $credentials_json ) ) {
+			return new WP_Error( 'no_credentials', __( 'Google Service Account credentials missing.', 'trackly' ) );
 		}
 
 		$creds = json_decode( $credentials_json, true );

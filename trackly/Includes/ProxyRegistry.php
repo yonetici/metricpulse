@@ -29,6 +29,13 @@ class ProxyRegistry {
 	 * Fetches, sanitizes, validates, and stores IPv4/IPv6 ranges securely.
 	 */
 	public static function refresh_cf_ips() {
+		// Atomic Lock (MySQL options based to prevent concurrency issues under Memcached/Redis)
+		$lock = get_option( 'trackly_ip_refresh_lock' );
+		if ( $lock && time() - intval( $lock ) < 600 ) {
+			return; // Locked in past 10 minutes
+		}
+		update_option( 'trackly_ip_refresh_lock', time() );
+
 		// Use a 15-second timeout to prevent blocking thread execution on slow API queries
 		$args = array(
 			'timeout' => 15,
@@ -65,6 +72,8 @@ class ProxyRegistry {
 		if ( ! empty( $ips ) ) {
 			update_option( 'trackly_cf_proxies', $ips );
 		}
+
+		delete_option( 'trackly_ip_refresh_lock' );
 	}
 
 	/**

@@ -55,7 +55,8 @@ class EventRepository {
 			click_y_pct float NOT NULL,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
 			PRIMARY KEY  (id),
-			KEY page_url (page_url(191))
+			KEY page_url (page_url(191)),
+			KEY created_at (created_at)
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -102,6 +103,13 @@ class EventRepository {
 	 * Clean up old click logs in limited batches to prevent table-locking timeouts.
 	 */
 	public function daily_cleanup(): void {
+		// Atomic Lock (MySQL options based to prevent concurrency issues under Memcached/Redis)
+		$lock = get_option( 'trackly_cleanup_lock' );
+		if ( $lock && time() - intval( $lock ) < 600 ) {
+			return; // Locked in past 10 minutes
+		}
+		update_option( 'trackly_cleanup_lock', time() );
+
 		$limit = 500;
 		$max_iterations = 100; // Cap execution safety to avoid infinite loops
 
@@ -120,5 +128,7 @@ class EventRepository {
 			// Yield execution control back to PHP & MySQL server thread (50ms pause)
 			usleep( 50000 );
 		}
+
+		delete_option( 'trackly_cleanup_lock' );
 	}
 }

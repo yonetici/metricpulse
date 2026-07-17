@@ -116,7 +116,7 @@ class Tracker {
 					<button class="trackly-panel-tab active" data-tab="stats"><?php esc_html_e( 'Statistics', 'trackly' ); ?></button>
 					<button class="trackly-panel-tab" data-tab="heatmap"><?php esc_html_e( 'Click Heatmap', 'trackly' ); ?></button>
 					<button class="trackly-panel-tab" data-tab="builder"><?php esc_html_e( 'Event Builder', 'trackly' ); ?></button>
-					<button class="trackly-panel-tab" data-tab="ai"><?php esc_html_e( 'AI Analysis', 'trackly' ); ?></button>
+					<button class="trackly-panel-tab" data-tab="ai"><?php esc_html_e( 'Predictive Insights', 'trackly' ); ?></button>
 				</div>
 
 				<!-- Stats Tab Content -->
@@ -192,16 +192,16 @@ class Tracker {
 					</div>
 				</div>
 
-				<!-- AI Insights Tab Content -->
+				<!-- Predictive Insights Tab Content -->
 				<div class="trackly-panel-tab-content" id="trackly-tab-ai">
-					<h5><?php esc_html_e( 'AI-Powered Page Analysis', 'trackly' ); ?></h5>
+					<h5><?php esc_html_e( 'Predictive Page Analysis', 'trackly' ); ?></h5>
 					<div class="trackly-ai-container">
 						<div id="trackly-ai-insights-content">
 							<div class="ai-insight-item">
 								<span class="dashicons dashicons-awards ai-icon purple"></span>
 								<div class="ai-text">
 									<strong><?php esc_html_e( 'Content Performance', 'trackly' ); ?></strong>
-									<p><?php esc_html_e( 'AI analysis is calculating page statistics...', 'trackly' ); ?></p>
+									<p><?php esc_html_e( 'Predictive anomaly engine is calculating statistics...', 'trackly' ); ?></p>
 								</div>
 							</div>
 						</div>

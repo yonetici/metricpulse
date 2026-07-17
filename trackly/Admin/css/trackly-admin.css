@@ -53,6 +53,7 @@
 	color: var(--trackly-primary);
 	background: linear-gradient(135deg, var(--trackly-primary), var(--trackly-secondary));
 	-webkit-background-clip: text;
+	background-clip: text;
 	-webkit-text-fill-color: transparent;
 }
 
@@ -63,6 +64,7 @@
 	letter-spacing: -0.5px;
 	background: linear-gradient(135deg, #1e293b 30%, #475569);
 	-webkit-background-clip: text;
+	background-clip: text;
 	-webkit-text-fill-color: transparent;
 	display: flex;
 	align-items: center;
@@ -76,7 +78,6 @@
 	color: var(--trackly-primary);
 	padding: 2px 8px;
 	border-radius: 99px;
-	text-fill-color: initial;
 	-webkit-text-fill-color: initial;
 }
 

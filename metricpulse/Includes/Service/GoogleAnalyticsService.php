@@ -40,6 +40,7 @@ class GoogleAnalyticsService {
 	public function flush_cache(): void {
 		delete_transient( self::TOKEN_KEY );
 		delete_transient( self::REALTIME_KEY );
+		delete_transient( self::REALTIME_KEY . '_series' );
 
 		// Rotate the generation so all versioned batch keys become unreachable regardless of backend.
 		update_option( self::CACHE_VERSION_KEY, $this->cache_version() + 1 );
@@ -448,23 +449,18 @@ class GoogleAnalyticsService {
 	}
 
 	/**
-	 * Rich mock GA4 report generator for Demo Mode / sandbox environments.
+	 * Rich, metric-aware mock GA4 report generator for Demo Mode / sandbox environments.
 	 *
-	 * Produces realistic, self-consistent data for every dimension the dashboard requests
-	 * (date trend, page paths, channel groups, device categories) plus a totals row, and
-	 * scales the daily trend / totals to the requested reporting window (7 vs 30 days).
+	 * For any requested dimension it emits realistic rows, and for EACH requested metric it
+	 * derives a self-consistent value from the row's base weight/engagement — so adding new
+	 * metrics or dimensions to the dashboard never produces empty or mismatched demo data.
 	 */
 	private function generate_mock_report( array $request ): array {
-		$dimensions = isset( $request['dimensions'] ) ? $request['dimensions'] : array();
-		$metrics    = isset( $request['metrics'] ) ? $request['metrics'] : array();
-
-		$dim_names = array_map(
-			function ( $d ) { return isset( $d['name'] ) ? $d['name'] : ''; },
-			$dimensions
-		);
-		$has_dim = function ( $name ) use ( $dim_names ) {
-			return in_array( $name, $dim_names, true );
-		};
+		$dimensions   = isset( $request['dimensions'] ) ? $request['dimensions'] : array();
+		$metrics      = isset( $request['metrics'] ) ? $request['metrics'] : array();
+		$metric_names = array_map( function ( $m ) { return isset( $m['name'] ) ? $m['name'] : ''; }, $metrics );
+		$dim_names    = array_map( function ( $d ) { return isset( $d['name'] ) ? $d['name'] : ''; }, $dimensions );
+		$primary      = isset( $dim_names[0] ) ? $dim_names[0] : '';
 
 		// Derive the window length from a "NdaysAgo" start date so 7-day and 30-day views differ.
 		$days = 7;
@@ -473,99 +469,228 @@ class GoogleAnalyticsService {
 			$days = max( 1, (int) $m[1] );
 		}
 
-		$rows = array();
+		$entries = $this->mock_dimension_entries( $primary, $days );
 
-		if ( $has_dim( 'date' ) ) {
-			// Daily trend: mild upward drift across the window with weekend dips.
-			for ( $i = $days; $i >= 1; $i-- ) {
-				$ts             = strtotime( "-{$i} days" );
-				$is_weekend     = in_array( (int) gmdate( 'N', $ts ), array( 6, 7 ), true );
-				$progress       = ( $days - $i ) / max( 1, $days );
-				$weekend_factor = $is_weekend ? 0.65 : 1.0;
-				$views          = (int) round( ( 1800 + $progress * 700 ) * $weekend_factor ) + wp_rand( -120, 120 );
-				$views          = max( 50, $views );
-				$users          = max( 20, (int) round( $views * 0.63 ) + wp_rand( -30, 30 ) );
-				$rows[]         = array(
-					'dimensionValues' => array( array( 'value' => gmdate( 'Ymd', $ts ) ) ),
-					'metricValues'    => array(
-						array( 'value' => (string) $views ),
-						array( 'value' => (string) $users ),
-						array( 'value' => (string) ( wp_rand( 34, 52 ) / 100 ) ),
-						array( 'value' => (string) wp_rand( 95, 230 ) ),
-					),
-				);
-			}
-		} elseif ( $has_dim( 'pagePath' ) ) {
-			// Descending by views to match the real orderBys the dashboard requests.
-			$pages = array(
-				'/'                     => 5200,
-				'/blog'                 => 3100,
-				'/products'             => 2400,
-				'/about'                => 1500,
-				'/contact'              => 1100,
-				'/pricing'              => 980,
-				'/blog/getting-started' => 760,
-				'/services'             => 640,
-			);
-			foreach ( $pages as $path => $views ) {
-				$views  = max( 20, $views + wp_rand( -80, 120 ) );
-				$rows[] = array(
-					'dimensionValues' => array( array( 'value' => $path ) ),
-					'metricValues'    => array(
-						array( 'value' => (string) $views ),
-						array( 'value' => (string) (int) round( $views * ( wp_rand( 55, 72 ) / 100 ) ) ),
-						array( 'value' => (string) ( wp_rand( 28, 66 ) / 100 ) ),
-						array( 'value' => (string) wp_rand( 45, 260 ) ),
-					),
-				);
-			}
-		} elseif ( $has_dim( 'sessionDefaultChannelGroup' ) || $has_dim( 'sessionSource' ) ) {
-			$channels = array(
-				'Organic Search' => 3400,
-				'Direct'         => 2200,
-				'Organic Social' => 1500,
-				'Referral'       => 950,
-				'Paid Search'    => 780,
-				'Email'          => 640,
-			);
-			foreach ( $channels as $label => $users ) {
-				$rows[] = array(
-					'dimensionValues' => array( array( 'value' => $label ) ),
-					'metricValues'    => array( array( 'value' => (string) max( 20, $users + wp_rand( -100, 150 ) ) ) ),
-				);
-			}
-		} elseif ( $has_dim( 'deviceCategory' ) ) {
-			$devices = array(
-				'desktop' => 4200,
-				'mobile'  => 3600,
-				'tablet'  => 620,
-			);
-			foreach ( $devices as $dev => $users ) {
-				$rows[] = array(
-					'dimensionValues' => array( array( 'value' => $dev ) ),
-					'metricValues'    => array( array( 'value' => (string) max( 20, $users + wp_rand( -150, 150 ) ) ) ),
-				);
-			}
-		} else {
-			// Totals row, scaled to the window length.
-			$views  = max( 500, (int) round( $days * 2100 ) + wp_rand( -500, 500 ) );
-			$users  = (int) round( $views * 0.55 );
+		$rows = array();
+		foreach ( $entries as $entry ) {
 			$rows[] = array(
-				'dimensionValues' => array(),
-				'metricValues'    => array(
-					array( 'value' => (string) $views ),                       // screenPageViews
-					array( 'value' => (string) $users ),                       // activeUsers
-					array( 'value' => (string) ( wp_rand( 36, 46 ) / 100 ) ),  // bounceRate
-					array( 'value' => (string) wp_rand( 150, 210 ) ),          // averageSessionDuration
+				'dimensionValues' => array_map(
+					function ( $v ) { return array( 'value' => (string) $v ); },
+					$entry['dims']
+				),
+				'metricValues'    => array_map(
+					function ( $name ) use ( $entry ) {
+						return array( 'value' => (string) $this->mock_metric_value( $name, $entry ) );
+					},
+					$metric_names
 				),
 			);
 		}
 
 		return array(
-			'dimensionHeaders' => array_map( function( $d ) { return array( 'name' => $d['name'] ); }, $dimensions ),
-			'metricHeaders'    => array_map( function( $m ) { return array( 'name' => $m['name'] ); }, $metrics ),
+			'dimensionHeaders' => array_map( function ( $d ) { return array( 'name' => $d['name'] ); }, $dimensions ),
+			'metricHeaders'    => array_map( function ( $m ) { return array( 'name' => $m['name'] ); }, $metrics ),
 			'rows'             => $rows,
 			'rowCount'         => count( $rows ),
 		);
+	}
+
+	/**
+	 * Build the demo rows (dimension value(s) + a base weight/engagement seed) for a dimension.
+	 * Each entry: array( 'dims' => array<string>, 'weight' => int users-base, 'er' => 0..1, 'dur' => seconds ).
+	 */
+	private function mock_dimension_entries( string $dim, int $days ): array {
+		$mk = function ( $dims, $weight, $er = null, $dur = null ) {
+			return array(
+				'dims'   => (array) $dims,
+				'weight' => max( 5, (int) $weight ),
+				'er'     => ( null !== $er ) ? $er : wp_rand( 45, 78 ) / 100,
+				'dur'    => ( null !== $dur ) ? $dur : wp_rand( 70, 245 ),
+			);
+		};
+
+		$list = function ( array $map ) use ( $mk ) {
+			$out = array();
+			foreach ( $map as $label => $weight ) {
+				$out[] = $mk( array( $label ), $weight + wp_rand( -80, 120 ) );
+			}
+			return $out;
+		};
+
+		switch ( $dim ) {
+			case 'date':
+				$out = array();
+				for ( $i = $days; $i >= 1; $i-- ) {
+					$ts   = strtotime( "-{$i} days" );
+					$wknd = in_array( (int) gmdate( 'N', $ts ), array( 6, 7 ), true );
+					$p    = ( $days - $i ) / max( 1, $days );
+					$w    = (int) round( ( 1150 + $p * 450 ) * ( $wknd ? 0.66 : 1.0 ) ) + wp_rand( -80, 80 );
+					$out[] = $mk( array( gmdate( 'Ymd', $ts ) ), $w );
+				}
+				return $out;
+
+			case 'pagePath':
+				return $list( array( '/' => 2100, '/blog' => 1300, '/products' => 1050, '/about' => 640, '/contact' => 470, '/pricing' => 420, '/blog/getting-started' => 320, '/services' => 270 ) );
+
+			case 'landingPage':
+				return $list( array( '/' => 1800, '/blog' => 1100, '/pricing' => 720, '/products' => 560, '/campaign/summer' => 430, '/about' => 300 ) );
+
+			case 'sessionDefaultChannelGroup':
+				return $list( array( 'Organic Search' => 3400, 'Direct' => 2200, 'Organic Social' => 1500, 'Referral' => 950, 'Paid Search' => 780, 'Email' => 640 ) );
+
+			case 'sessionSourceMedium':
+				return $list( array( 'google / organic' => 3100, '(direct) / (none)' => 2200, 'google / cpc' => 780, 'm.facebook.com / referral' => 760, 'newsletter / email' => 620, 'bing / organic' => 640, 't.co / referral' => 540, 'linkedin.com / referral' => 360 ) );
+
+			case 'sessionSource':
+				return $list( array( 'google' => 3400, '(direct)' => 2200, 'facebook' => 760, 'bing' => 640, 't.co' => 540, 'newsletter' => 620 ) );
+
+			case 'deviceCategory':
+				return $list( array( 'desktop' => 4200, 'mobile' => 3600, 'tablet' => 620 ) );
+
+			case 'browser':
+				return $list( array( 'Chrome' => 5200, 'Safari' => 2100, 'Edge' => 780, 'Firefox' => 520, 'Samsung Internet' => 300 ) );
+
+			case 'operatingSystem':
+				return $list( array( 'Windows' => 3800, 'iOS' => 2200, 'Android' => 2000, 'macOS' => 1200, 'Linux' => 280 ) );
+
+			case 'country':
+				return $list( array( 'United States' => 2600, 'Turkey' => 1500, 'United Kingdom' => 1200, 'India' => 1100, 'Germany' => 980, 'Canada' => 620, 'France' => 540, 'Netherlands' => 360 ) );
+
+			case 'eventName':
+				return $list( array( 'page_view' => 4200, 'session_start' => 3400, 'scroll' => 2600, 'user_engagement' => 2400, 'click' => 900, 'form_submit' => 240, 'file_download' => 160 ) );
+
+			case 'newVsReturning':
+				return array( $mk( array( 'new' ), 4200, wp_rand( 40, 55 ) / 100 ), $mk( array( 'returning' ), 2600, wp_rand( 62, 82 ) / 100 ) );
+
+			case '':
+				// Totals row, scaled to the reporting window length.
+				return array( $mk( array(), (int) round( $days * 1150 ) ) );
+
+			default:
+				$out = array();
+				for ( $k = 1; $k <= 5; $k++ ) {
+					$out[] = $mk( array( $dim . '_' . $k ), wp_rand( 200, 2000 ) );
+				}
+				return $out;
+		}
+	}
+
+	/**
+	 * Derive a plausible value for a single GA4 metric from a row's base weight/engagement seed.
+	 * Keeps ratios internally consistent (sessions > users, views > sessions, etc.).
+	 */
+	private function mock_metric_value( string $name, array $e ) {
+		$w        = $e['weight'];
+		$er       = $e['er'];
+		$dur      = $e['dur'];
+		$sessions = (int) round( $w * 1.22 );
+		$views    = (int) round( $w * 2.4 );
+		$key      = max( 0, (int) round( $sessions * 0.045 ) );
+
+		switch ( $name ) {
+			case 'activeUsers':
+			case 'totalUsers':
+				return ( 'totalUsers' === $name ) ? (int) round( $w * 1.06 ) : $w;
+			case 'newUsers':
+				return (int) round( $w * 0.42 );
+			case 'sessions':
+				return $sessions;
+			case 'engagedSessions':
+				return (int) round( $sessions * $er );
+			case 'screenPageViews':
+				return $views;
+			case 'eventCount':
+				return (int) round( $views * 3.6 );
+			case 'eventCountPerUser':
+				return round( ( $views * 3.6 ) / max( 1, $w ), 2 );
+			case 'engagementRate':
+				return round( $er, 4 );
+			case 'bounceRate':
+				return round( 1 - $er, 4 );
+			case 'averageSessionDuration':
+				return $dur;
+			case 'userEngagementDuration':
+				return (int) round( $dur * $sessions );
+			case 'sessionsPerUser':
+				return round( $sessions / max( 1, $w ), 2 );
+			case 'screenPageViewsPerSession':
+				return round( $views / max( 1, $sessions ), 2 );
+			case 'keyEvents':
+			case 'conversions':
+				return $key;
+			case 'totalRevenue':
+			case 'purchaseRevenue':
+			case 'grossPurchaseRevenue':
+				return round( $key * wp_rand( 25, 75 ), 2 );
+			default:
+				return $w;
+		}
+	}
+
+	/**
+	 * Active users for the last 30 minutes, one bucket per minute (oldest first).
+	 * Powers the realtime sparkline. Returns array of array( 'minute' => int, 'users' => int ).
+	 */
+	public function get_realtime_series(): array {
+		$cached = get_transient( self::REALTIME_KEY . '_series' );
+		if ( false !== $cached && is_array( $cached ) ) {
+			return $cached;
+		}
+
+		$series = array();
+
+		if ( $this->is_demo_mode() ) {
+			$base = wp_rand( 6, 14 );
+			for ( $i = 29; $i >= 0; $i-- ) {
+				$series[] = array( 'minute' => $i, 'users' => max( 0, $base + wp_rand( -5, 6 ) ) );
+			}
+			set_transient( self::REALTIME_KEY . '_series', $series, 20 );
+			return $series;
+		}
+
+		if ( ! $this->is_configured() ) {
+			return array();
+		}
+
+		$property_id = get_option( 'trackly_property_id', '' );
+		$token       = $this->get_access_token();
+		if ( is_wp_error( $token ) ) {
+			return array();
+		}
+
+		$url      = "https://analyticsdata.googleapis.com/v1beta/properties/{$property_id}:runRealtimeReport";
+		$response = wp_remote_post( $url, array(
+			'timeout' => 10,
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $token,
+				'Content-Type'  => 'application/json',
+			),
+			'body'    => wp_json_encode( array(
+				'dimensions' => array( array( 'name' => 'minutesAgo' ) ),
+				'metrics'    => array( array( 'name' => 'activeUsers' ) ),
+			) ),
+		) );
+
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			return array();
+		}
+
+		$body    = json_decode( wp_remote_retrieve_body( $response ), true );
+		$buckets = array_fill( 0, 30, 0 );
+		if ( isset( $body['rows'] ) && is_array( $body['rows'] ) ) {
+			foreach ( $body['rows'] as $row ) {
+				$minute = isset( $row['dimensionValues'][0]['value'] ) ? (int) $row['dimensionValues'][0]['value'] : -1;
+				$users  = isset( $row['metricValues'][0]['value'] ) ? (int) $row['metricValues'][0]['value'] : 0;
+				if ( $minute >= 0 && $minute <= 29 ) {
+					$buckets[ $minute ] = $users;
+				}
+			}
+		}
+		for ( $i = 29; $i >= 0; $i-- ) {
+			$series[] = array( 'minute' => $i, 'users' => $buckets[ $i ] );
+		}
+
+		set_transient( self::REALTIME_KEY . '_series', $series, 20 );
+		return $series;
 	}
 }

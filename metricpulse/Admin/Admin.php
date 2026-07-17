@@ -157,14 +157,17 @@ class Admin {
 			'debug'       => defined( 'WP_DEBUG' ) && WP_DEBUG,
 			'state'       => Api::get_connection_state(),
 			'i18n'        => array(
-				'noData'      => __( 'No data found.', 'metricpulse' ),
-				'loading'     => __( 'Loading...', 'metricpulse' ),
-				'unavailable' => __( 'N/A', 'metricpulse' ),
-				'pageviews'   => __( 'Pageviews', 'metricpulse' ),
-				'users'       => __( 'Users', 'metricpulse' ),
-				'desktop'     => __( 'Desktop', 'metricpulse' ),
-				'mobile'      => __( 'Mobile', 'metricpulse' ),
-				'tablet'      => __( 'Tablet', 'metricpulse' ),
+				'noData'            => __( 'No data found.', 'metricpulse' ),
+				'loading'           => __( 'Loading...', 'metricpulse' ),
+				'unavailable'       => __( 'N/A', 'metricpulse' ),
+				'pageviews'         => __( 'Pageviews', 'metricpulse' ),
+				'users'             => __( 'Users', 'metricpulse' ),
+				'sessions'          => __( 'Sessions', 'metricpulse' ),
+				'desktop'           => __( 'Desktop', 'metricpulse' ),
+				'mobile'            => __( 'Mobile', 'metricpulse' ),
+				'tablet'            => __( 'Tablet', 'metricpulse' ),
+				'newVisitors'       => __( 'New', 'metricpulse' ),
+				'returningVisitors' => __( 'Returning', 'metricpulse' ),
 			),
 		) );
 	}
@@ -248,13 +251,13 @@ class Admin {
 							<span id="trackly-active-users">--</span>
 							<span class="pulse-ring"></span>
 						</div>
-						<p><?php esc_html_e( 'Active Visitors', 'metricpulse' ); ?></p>
+						<p><?php esc_html_e( 'in the last 30 minutes', 'metricpulse' ); ?></p>
 					</div>
-					<div class="trackly-realtime-spark"></div>
+					<div class="trackly-realtime-spark" id="trackly-realtime-spark"></div>
 				</div>
 
 				<!-- Stats Grid -->
-				<div class="trackly-grid">
+				<div class="trackly-grid trackly-kpi-grid">
 					<div class="trackly-card stat-card">
 						<div class="stat-info">
 							<h4><?php esc_html_e( 'Pageviews', 'metricpulse' ); ?></h4>
@@ -271,14 +274,28 @@ class Admin {
 					</div>
 					<div class="trackly-card stat-card">
 						<div class="stat-info">
-							<h4><?php esc_html_e( 'Bounce Rate (Unengaged)', 'metricpulse' ); ?></h4>
+							<h4><?php esc_html_e( 'Sessions', 'metricpulse' ); ?></h4>
+							<h2 id="trackly-stat-sessions">--</h2>
+						</div>
+						<span class="dashicons dashicons-chart-bar stat-icon sessions"></span>
+					</div>
+					<div class="trackly-card stat-card">
+						<div class="stat-info">
+							<h4><?php esc_html_e( 'Engagement Rate', 'metricpulse' ); ?></h4>
+							<h2 id="trackly-stat-engagement">--</h2>
+						</div>
+						<span class="dashicons dashicons-chart-line stat-icon engagement"></span>
+					</div>
+					<div class="trackly-card stat-card">
+						<div class="stat-info">
+							<h4><?php esc_html_e( 'Bounce Rate', 'metricpulse' ); ?></h4>
 							<h2 id="trackly-stat-bounce">--</h2>
 						</div>
 						<span class="dashicons dashicons-exit stat-icon bounce"></span>
 					</div>
 					<div class="trackly-card stat-card">
 						<div class="stat-info">
-							<h4><?php esc_html_e( 'Average Session Duration', 'metricpulse' ); ?></h4>
+							<h4><?php esc_html_e( 'Avg. Session Duration', 'metricpulse' ); ?></h4>
 							<h2 id="trackly-stat-duration">--</h2>
 						</div>
 						<span class="dashicons dashicons-clock stat-icon duration"></span>
@@ -320,6 +337,27 @@ class Admin {
 					</div>
 				</div>
 
+				<!-- Traffic Acquisition (Source / Medium — includes referrers) -->
+				<div class="trackly-card table-card">
+					<h3><?php esc_html_e( 'Traffic Acquisition (Source / Medium)', 'metricpulse' ); ?></h3>
+					<div class="trackly-table-wrapper">
+						<table class="trackly-table" id="trackly-acquisition-table">
+							<thead>
+								<tr>
+									<th><?php esc_html_e( 'Source / Medium', 'metricpulse' ); ?></th>
+									<th><?php esc_html_e( 'Sessions', 'metricpulse' ); ?></th>
+									<th><?php esc_html_e( 'Users', 'metricpulse' ); ?></th>
+									<th><?php esc_html_e( 'Engagement', 'metricpulse' ); ?></th>
+									<th><?php esc_html_e( 'Key Events', 'metricpulse' ); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr><td colspan="5" class="loading-td"><?php esc_html_e( 'Loading...', 'metricpulse' ); ?></td></tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
 				<!-- Top Pages Table -->
 				<div class="trackly-card table-card">
 					<h3><?php esc_html_e( 'Top Viewed Pages', 'metricpulse' ); ?></h3>
@@ -330,7 +368,7 @@ class Admin {
 									<th><?php esc_html_e( 'Page URL', 'metricpulse' ); ?></th>
 									<th><?php esc_html_e( 'Pageviews', 'metricpulse' ); ?></th>
 									<th><?php esc_html_e( 'Users', 'metricpulse' ); ?></th>
-									<th><?php esc_html_e( 'Bounce Rate', 'metricpulse' ); ?></th>
+									<th><?php esc_html_e( 'Engagement', 'metricpulse' ); ?></th>
 									<th><?php esc_html_e( 'Avg. Duration', 'metricpulse' ); ?></th>
 								</tr>
 							</thead>
@@ -338,6 +376,58 @@ class Admin {
 								<tr>
 									<td colspan="5" class="loading-td"><?php esc_html_e( 'Loading...', 'metricpulse' ); ?></td>
 								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<!-- Landing Pages Table -->
+				<div class="trackly-card table-card">
+					<h3><?php esc_html_e( 'Top Landing Pages', 'metricpulse' ); ?></h3>
+					<div class="trackly-table-wrapper">
+						<table class="trackly-table" id="trackly-landing-table">
+							<thead>
+								<tr>
+									<th><?php esc_html_e( 'Landing Page', 'metricpulse' ); ?></th>
+									<th><?php esc_html_e( 'Sessions', 'metricpulse' ); ?></th>
+									<th><?php esc_html_e( 'Engagement', 'metricpulse' ); ?></th>
+									<th><?php esc_html_e( 'Pageviews', 'metricpulse' ); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr><td colspan="4" class="loading-td"><?php esc_html_e( 'Loading...', 'metricpulse' ); ?></td></tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<!-- Bottom Grid (Geography & New vs Returning) -->
+				<div class="trackly-grid double">
+					<div class="trackly-card table-card">
+						<h3><?php esc_html_e( 'Top Countries', 'metricpulse' ); ?></h3>
+						<div id="trackly-geo-list" class="trackly-bar-list">
+							<p class="loading-td"><?php esc_html_e( 'Loading...', 'metricpulse' ); ?></p>
+						</div>
+					</div>
+					<div class="trackly-card chart-half">
+						<h3><?php esc_html_e( 'New vs Returning', 'metricpulse' ); ?></h3>
+						<div id="trackly-nvr-chart"></div>
+					</div>
+				</div>
+
+				<!-- Top Events Table -->
+				<div class="trackly-card table-card">
+					<h3><?php esc_html_e( 'Top Events', 'metricpulse' ); ?></h3>
+					<div class="trackly-table-wrapper">
+						<table class="trackly-table" id="trackly-events-table">
+							<thead>
+								<tr>
+									<th><?php esc_html_e( 'Event Name', 'metricpulse' ); ?></th>
+									<th><?php esc_html_e( 'Event Count', 'metricpulse' ); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr><td colspan="2" class="loading-td"><?php esc_html_e( 'Loading...', 'metricpulse' ); ?></td></tr>
 							</tbody>
 						</table>
 					</div>
@@ -667,98 +757,92 @@ class Admin {
 	 */
 	public function get_stats_callback( $request ) {
 		$days = intval( $request->get_param( 'days' ) );
-		if ( ! in_array( $days, array( 7, 30 ) ) ) {
+		if ( ! in_array( $days, array( 7, 30 ), true ) ) {
 			$days = 7;
 		}
 
 		$start_date = $days === 30 ? '30daysAgo' : '7daysAgo';
+		$range      = array( array( 'startDate' => $start_date, 'endDate' => 'yesterday' ) );
 
-		$summary_req = array(
-			'dateRanges' => array( array( 'startDate' => $start_date, 'endDate' => 'yesterday' ) ),
-			'metrics'    => array(
-				array( 'name' => 'screenPageViews' ),
-				array( 'name' => 'activeUsers' ),
-				array( 'name' => 'bounceRate' ),
-				array( 'name' => 'averageSessionDuration' ),
-			),
+		$order_by = function ( $metric ) {
+			return array( array( 'desc' => true, 'metric' => array( 'metricName' => $metric ) ) );
+		};
+
+		// GA4 batchRunReports allows at most 5 reports per call, so we use two batches.
+		// Overview batch: only universally-stable metrics, so the core dashboard is bulletproof.
+		$overview_reqs = array(
+			// 0: Summary KPIs
+			array( 'dateRanges' => $range, 'metrics' => $this->ga_fields( array( 'screenPageViews', 'activeUsers', 'sessions', 'engagementRate', 'bounceRate', 'averageSessionDuration' ) ) ),
+			// 1: Daily trend
+			array( 'dateRanges' => $range, 'dimensions' => $this->ga_fields( array( 'date' ) ), 'metrics' => $this->ga_fields( array( 'screenPageViews', 'activeUsers', 'sessions' ) ) ),
+			// 2: Channel donut
+			array( 'dateRanges' => $range, 'dimensions' => $this->ga_fields( array( 'sessionDefaultChannelGroup' ) ), 'metrics' => $this->ga_fields( array( 'sessions' ) ), 'orderBys' => $order_by( 'sessions' ), 'limit' => 8 ),
+			// 3: Device donut
+			array( 'dateRanges' => $range, 'dimensions' => $this->ga_fields( array( 'deviceCategory' ) ), 'metrics' => $this->ga_fields( array( 'activeUsers' ) ) ),
+			// 4: Top pages
+			array( 'dateRanges' => $range, 'dimensions' => $this->ga_fields( array( 'pagePath' ) ), 'metrics' => $this->ga_fields( array( 'screenPageViews', 'activeUsers', 'engagementRate', 'averageSessionDuration' ) ), 'orderBys' => $order_by( 'screenPageViews' ), 'limit' => 20 ),
 		);
 
-		$chart_req = array(
-			'dateRanges' => array( array( 'startDate' => $start_date, 'endDate' => 'yesterday' ) ),
-			'dimensions' => array( array( 'name' => 'date' ) ),
-			'metrics'    => array(
-				array( 'name' => 'screenPageViews' ),
-				array( 'name' => 'activeUsers' ),
-				array( 'name' => 'bounceRate' ),
-				array( 'name' => 'averageSessionDuration' ),
-			),
-		);
-
-		$sources_req = array(
-			'dateRanges' => array( array( 'startDate' => $start_date, 'endDate' => 'yesterday' ) ),
-			'dimensions' => array( array( 'name' => 'sessionDefaultChannelGroup' ) ),
-			'metrics'    => array( array( 'name' => 'activeUsers' ) ),
-		);
-
-		$devices_req = array(
-			'dateRanges' => array( array( 'startDate' => $start_date, 'endDate' => 'yesterday' ) ),
-			'dimensions' => array( array( 'name' => 'deviceCategory' ) ),
-			'metrics'    => array( array( 'name' => 'activeUsers' ) ),
-		);
-
-		$pages_req = array(
-			'dateRanges' => array( array( 'startDate' => $start_date, 'endDate' => 'yesterday' ) ),
-			'dimensions' => array( array( 'name' => 'pagePath' ) ),
-			'metrics'    => array(
-				array( 'name' => 'screenPageViews' ),
-				array( 'name' => 'activeUsers' ),
-				array( 'name' => 'bounceRate' ),
-				array( 'name' => 'averageSessionDuration' ),
-			),
-			// Deterministically return only the top pages so we never dump thousands of rows into the DOM/cache.
-			'orderBys'   => array(
-				array(
-					'desc'   => true,
-					'metric' => array( 'metricName' => 'screenPageViews' ),
-				),
-			),
-			'limit'      => 20,
-		);
-
-		$batch_report = Api::batch_run_reports( array(
-			$summary_req,
-			$chart_req,
-			$sources_req,
-			$devices_req,
-			$pages_req,
-		) );
-
-		if ( is_wp_error( $batch_report ) ) {
-			return new WP_REST_Response( array( 'success' => false, 'error' => $batch_report->get_error_message() ), 500 );
+		$ov = Api::batch_run_reports( $overview_reqs );
+		if ( is_wp_error( $ov ) ) {
+			return new WP_REST_Response( array( 'success' => false, 'error' => $ov->get_error_message() ), 500 );
 		}
 
-		$realtime_users = Api::get_realtime_users();
+		// Secondary batch: acquisition / audience widgets. Loaded best-effort — if it fails
+		// (e.g. a property that rejects keyEvents), the core dashboard above still renders.
+		$secondary_reqs = array(
+			// 0: Traffic acquisition by source / medium (includes referrers)
+			array( 'dateRanges' => $range, 'dimensions' => $this->ga_fields( array( 'sessionSourceMedium' ) ), 'metrics' => $this->ga_fields( array( 'sessions', 'activeUsers', 'engagementRate', 'keyEvents' ) ), 'orderBys' => $order_by( 'sessions' ), 'limit' => 10 ),
+			// 1: Landing pages
+			array( 'dateRanges' => $range, 'dimensions' => $this->ga_fields( array( 'landingPage' ) ), 'metrics' => $this->ga_fields( array( 'sessions', 'engagementRate', 'screenPageViews' ) ), 'orderBys' => $order_by( 'sessions' ), 'limit' => 10 ),
+			// 2: Geography
+			array( 'dateRanges' => $range, 'dimensions' => $this->ga_fields( array( 'country' ) ), 'metrics' => $this->ga_fields( array( 'activeUsers' ) ), 'orderBys' => $order_by( 'activeUsers' ), 'limit' => 10 ),
+			// 3: Top events
+			array( 'dateRanges' => $range, 'dimensions' => $this->ga_fields( array( 'eventName' ) ), 'metrics' => $this->ga_fields( array( 'eventCount' ) ), 'orderBys' => $order_by( 'eventCount' ), 'limit' => 10 ),
+			// 4: New vs returning
+			array( 'dateRanges' => $range, 'dimensions' => $this->ga_fields( array( 'newVsReturning' ) ), 'metrics' => $this->ga_fields( array( 'activeUsers' ) ) ),
+		);
+		$sec    = Api::batch_run_reports( $secondary_reqs );
+		$sec_ok = ! is_wp_error( $sec );
 
-		// batch_run_reports() returns the reports array directly (indexed 0..n), not wrapped in a 'reports' key.
+		$realtime_users  = Api::get_realtime_users();
+		$realtime_series = Api::get_realtime_series();
+
 		return new WP_REST_Response( array(
-			'success'        => true,
-			'summary'        => isset( $batch_report[0] ) ? $batch_report[0] : array(),
-			'chart'          => isset( $batch_report[1] ) ? $batch_report[1] : array(),
-			'sources'        => isset( $batch_report[2] ) ? $batch_report[2] : array(),
-			'devices'        => isset( $batch_report[3] ) ? $batch_report[3] : array(),
-			'pages'          => isset( $batch_report[4] ) ? $batch_report[4] : array(),
-			'realtime_users' => $realtime_users,
+			'success'          => true,
+			'summary'          => isset( $ov[0] ) ? $ov[0] : array(),
+			'chart'            => isset( $ov[1] ) ? $ov[1] : array(),
+			'sources'          => isset( $ov[2] ) ? $ov[2] : array(),
+			'devices'          => isset( $ov[3] ) ? $ov[3] : array(),
+			'pages'            => isset( $ov[4] ) ? $ov[4] : array(),
+			'acquisition'      => ( $sec_ok && isset( $sec[0] ) ) ? $sec[0] : array(),
+			'landing_pages'    => ( $sec_ok && isset( $sec[1] ) ) ? $sec[1] : array(),
+			'geography'        => ( $sec_ok && isset( $sec[2] ) ) ? $sec[2] : array(),
+			'events'           => ( $sec_ok && isset( $sec[3] ) ) ? $sec[3] : array(),
+			'new_vs_returning' => ( $sec_ok && isset( $sec[4] ) ) ? $sec[4] : array(),
+			'realtime_users'   => $realtime_users,
+			'realtime_series'  => $realtime_series,
 		), 200 );
+	}
+
+	/**
+	 * Helper: turn a list of GA4 field names into the API's [ [ 'name' => ... ], ... ] shape.
+	 */
+	private function ga_fields( array $names ): array {
+		return array_map(
+			function ( $name ) { return array( 'name' => $name ); },
+			$names
+		);
 	}
 
 	/**
 	 * REST Callback for lightweight realtime polling.
 	 */
 	public function get_realtime_callback( $request ) {
-		$realtime_users = Api::get_realtime_users();
 		return new WP_REST_Response( array(
-			'success'        => true,
-			'realtime_users' => $realtime_users,
+			'success'         => true,
+			'realtime_users'  => Api::get_realtime_users(),
+			'realtime_series' => Api::get_realtime_series(),
 		), 200 );
 	}
 

@@ -95,6 +95,49 @@ class GoogleAnalyticsServiceTest extends TestCase {
 		}
 	}
 
+	public function test_demo_supports_acquisition_geo_events_dimensions() {
+		update_option( 'trackly_demo_mode', 'yes' );
+		$dims = array( 'sessionSourceMedium', 'landingPage', 'country', 'eventName', 'newVsReturning' );
+		foreach ( $dims as $dim ) {
+			$report = $this->service->get_report( array(
+				'dateRanges' => array( array( 'startDate' => '7daysAgo', 'endDate' => 'yesterday' ) ),
+				'dimensions' => array( array( 'name' => $dim ) ),
+				'metrics'    => array( array( 'name' => 'sessions' ), array( 'name' => 'activeUsers' ), array( 'name' => 'engagementRate' ), array( 'name' => 'keyEvents' ) ),
+			) );
+			$this->assertNotEmpty( $report['rows'], "No demo rows for dimension {$dim}" );
+			$row = $report['rows'][0];
+			$this->assertNotEmpty( $row['dimensionValues'][0]['value'], "Empty dimension value for {$dim}" );
+			// Every requested metric must be present and numeric-castable.
+			$this->assertCount( 4, $row['metricValues'], "Metric count mismatch for {$dim}" );
+			$this->assertTrue( is_numeric( $row['metricValues'][0]['value'] ) );
+		}
+	}
+
+	public function test_demo_metrics_are_internally_consistent() {
+		update_option( 'trackly_demo_mode', 'yes' );
+		$report = $this->service->get_report( array(
+			'dateRanges' => array( array( 'startDate' => '7daysAgo', 'endDate' => 'yesterday' ) ),
+			'metrics'    => array( array( 'name' => 'activeUsers' ), array( 'name' => 'sessions' ), array( 'name' => 'screenPageViews' ), array( 'name' => 'engagementRate' ), array( 'name' => 'bounceRate' ) ),
+		) );
+		$mv = $report['rows'][0]['metricValues'];
+		$users    = (float) $mv[0]['value'];
+		$sessions = (float) $mv[1]['value'];
+		$views    = (float) $mv[2]['value'];
+		$engage   = (float) $mv[3]['value'];
+		$bounce   = (float) $mv[4]['value'];
+		$this->assertGreaterThanOrEqual( $users, $sessions, 'Sessions should be >= users' );
+		$this->assertGreaterThanOrEqual( $sessions, $views, 'Pageviews should be >= sessions' );
+		$this->assertEqualsWithDelta( 1.0, $engage + $bounce, 0.001, 'engagementRate + bounceRate should equal 1' );
+	}
+
+	public function test_demo_realtime_series_has_30_buckets() {
+		update_option( 'trackly_demo_mode', 'yes' );
+		$series = $this->service->get_realtime_series();
+		$this->assertCount( 30, $series );
+		$this->assertArrayHasKey( 'minute', $series[0] );
+		$this->assertArrayHasKey( 'users', $series[0] );
+	}
+
 	public function test_demo_chart_scales_with_date_range() {
 		update_option( 'trackly_demo_mode', 'yes' );
 		$make = function ( $start ) {

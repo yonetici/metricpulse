@@ -1,5 +1,5 @@
 /**
- * Trackly Analytics Dashboard Script
+ * MetricPulse Analytics Dashboard Script
  */
 (function($) {
 	'use strict';
@@ -7,6 +7,8 @@
 	let mainChart = null;
 	let sourceChart = null;
 	let deviceChart = null;
+	let nvrChart = null;
+	let realtimeSpark = null;
 	let realtimeInterval = null;
 
 	// Translatable strings with English fallbacks.
@@ -30,10 +32,17 @@
 	function dimValue(row) {
 		return (row && row.dimensionValues && row.dimensionValues[0]) ? row.dimensionValues[0].value : null;
 	}
+	// Safe metric accessor: metric value at index, as float/int.
+	function metric(row, i) {
+		return (row && row.metricValues && row.metricValues[i]) ? row.metricValues[i].value : 0;
+	}
+	function intOf(v) { return parseInt(v, 10) || 0; }
+	function num(v) { return intOf(v).toLocaleString(); }
+	function pct(ratio) { return (parseFloat(ratio) * 100).toFixed(1) + '%'; }
 
 	// Format a duration given in seconds as m:ss (consistent with the frontend panel).
 	function formatDuration(totalSeconds) {
-		const s = parseInt(totalSeconds, 10) || 0;
+		const s = intOf(totalSeconds);
 		const mins = Math.floor(s / 60);
 		const secs = s % 60;
 		return mins + ':' + (secs < 10 ? '0' : '') + secs;
@@ -77,7 +86,7 @@
 	function initTabs() {
 		$('.trackly-tab-btn').on('click', function() {
 			const target = $(this).data('target');
-			
+
 			$('.trackly-tab-btn').removeClass('active');
 			$('.trackly-tab-content').removeClass('active');
 
@@ -90,6 +99,14 @@
 	 * Initialize empty ApexCharts instances with loading states
 	 */
 	function initCharts() {
+		const donutBase = {
+			chart: { type: 'donut', height: 280, fontFamily: 'inherit' },
+			series: [],
+			labels: [],
+			legend: { position: 'bottom' },
+			noData: { text: t('loading', 'Loading...') }
+		};
+
 		const mainOptions = {
 			chart: {
 				type: 'area',
@@ -99,61 +116,41 @@
 				fontFamily: 'inherit',
 				foreColor: '#64748b'
 			},
-			colors: ['#8b5cf6', '#06b6d4'],
+			colors: ['#8b5cf6', '#06b6d4', '#10b981'],
 			fill: {
 				type: 'gradient',
-				gradient: {
-					shadeIntensity: 1,
-					opacityFrom: 0.45,
-					opacityTo: 0.05,
-					stops: [0, 100]
-				}
+				gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05, stops: [0, 100] }
 			},
 			dataLabels: { enabled: false },
 			stroke: { curve: 'smooth', width: 3 },
 			series: [],
 			xaxis: { categories: [] },
-			noData: {
-				text: 'Loading...',
-				align: 'center',
-				verticalAlign: 'middle',
-				style: { color: '#64748b', fontSize: '14px' }
-			}
+			noData: { text: t('loading', 'Loading...'), align: 'center', verticalAlign: 'middle', style: { color: '#64748b', fontSize: '14px' } }
 		};
 
-		const sourceOptions = {
-			chart: {
-				type: 'donut',
-				height: 280,
-				fontFamily: 'inherit'
-			},
-			colors: ['#8b5cf6', '#06b6d4', '#10b981', '#f43f5e', '#e2e8f0'],
-			series: [],
-			labels: [],
-			legend: { position: 'bottom' },
-			noData: { text: 'Loading...' }
-		};
-
-		const deviceOptions = {
-			chart: {
-				type: 'donut',
-				height: 280,
-				fontFamily: 'inherit'
-			},
-			colors: ['#4f46e5', '#06b6d4', '#cbd5e1'],
-			series: [],
-			labels: [],
-			legend: { position: 'bottom' },
-			noData: { text: 'Loading...' }
-		};
-
-		mainChart = new ApexCharts(document.querySelector("#trackly-main-chart"), mainOptions);
-		sourceChart = new ApexCharts(document.querySelector("#trackly-source-chart"), sourceOptions);
-		deviceChart = new ApexCharts(document.querySelector("#trackly-device-chart"), deviceOptions);
+		mainChart = new ApexCharts(document.querySelector('#trackly-main-chart'), mainOptions);
+		sourceChart = new ApexCharts(document.querySelector('#trackly-source-chart'), Object.assign({}, donutBase, { colors: ['#8b5cf6', '#06b6d4', '#10b981', '#f43f5e', '#f59e0b', '#e2e8f0'] }));
+		deviceChart = new ApexCharts(document.querySelector('#trackly-device-chart'), Object.assign({}, donutBase, { colors: ['#4f46e5', '#06b6d4', '#cbd5e1'] }));
+		nvrChart = new ApexCharts(document.querySelector('#trackly-nvr-chart'), Object.assign({}, donutBase, { colors: ['#8b5cf6', '#10b981'] }));
 
 		mainChart.render();
 		sourceChart.render();
 		deviceChart.render();
+		nvrChart.render();
+
+		// Realtime sparkline (small, no axes)
+		const sparkEl = document.querySelector('#trackly-realtime-spark');
+		if (sparkEl) {
+			realtimeSpark = new ApexCharts(sparkEl, {
+				chart: { type: 'area', height: 90, sparkline: { enabled: true }, animations: { enabled: false } },
+				stroke: { curve: 'smooth', width: 2 },
+				fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.05 } },
+				colors: ['#ffffff'],
+				series: [{ name: t('users', 'Users'), data: [] }],
+				tooltip: { enabled: true, x: { show: false }, theme: 'dark' }
+			});
+			realtimeSpark.render();
+		}
 	}
 
 	/**
@@ -168,19 +165,25 @@
 				xhr.setRequestHeader('X-WP-Nonce', tracklyData.rest_nonce);
 			},
 			success: function(res) {
-				if (res.success) {
-					// Isolate each section so a single malformed report never blanks the whole dashboard.
-					safe(function() { updateSummary(res.summary); });
-					safe(function() { updateMainChart(res.chart); });
-					safe(function() { updateSourceChart(res.sources); });
-					safe(function() { updateDeviceChart(res.devices); });
-					safe(function() { updatePagesTable(res.pages); });
-					safe(function() { updateRealtimeValue(res.realtime_users); });
-				} else {
+				if (!res.success) {
 					if (typeof tracklyData !== 'undefined' && tracklyData.debug) {
 						console.error('GA Data retrieval failed: ', res.error);
 					}
+					return;
 				}
+				// Isolate each section so a single malformed report never blanks the whole dashboard.
+				safe(function() { updateSummary(res.summary); });
+				safe(function() { updateMainChart(res.chart); });
+				safe(function() { updateSourceChart(res.sources); });
+				safe(function() { updateDeviceChart(res.devices); });
+				safe(function() { updatePagesTable(res.pages); });
+				safe(function() { renderAcquisitionTable(res.acquisition); });
+				safe(function() { renderLandingTable(res.landing_pages); });
+				safe(function() { renderGeoList(res.geography); });
+				safe(function() { renderEventsTable(res.events); });
+				safe(function() { renderNewVsReturning(res.new_vs_returning); });
+				safe(function() { updateRealtimeValue(res.realtime_users); });
+				safe(function() { updateRealtimeSpark(res.realtime_series); });
 			},
 			error: function(err) {
 				if (typeof tracklyData !== 'undefined' && tracklyData.debug) {
@@ -191,10 +194,9 @@
 	}
 
 	/**
-	 * Periodically fetch active visitor count
+	 * Periodically fetch active visitor count + sparkline
 	 */
 	function startRealtimePolling() {
-		// Poll every 20 seconds, but skip while the tab is hidden to avoid needless background requests.
 		realtimeInterval = setInterval(function() {
 			if (document.visibilityState === 'hidden') {
 				return;
@@ -207,7 +209,8 @@
 				},
 				success: function(res) {
 					if (res.success) {
-						updateRealtimeValue(res.realtime_users);
+						safe(function() { updateRealtimeValue(res.realtime_users); });
+						safe(function() { updateRealtimeSpark(res.realtime_series); });
 					}
 				}
 			});
@@ -223,36 +226,39 @@
 		});
 	}
 
-	/**
-	 * Update aggregate metric cards
-	 */
-	function updateSummary(summaryData) {
-		if (!summaryData.rows || summaryData.rows.length === 0) return;
-		
-		const metrics = summaryData.rows[0].metricValues;
-		const views = parseInt(metrics[0].value).toLocaleString();
-		const users = parseInt(metrics[1].value).toLocaleString();
-
-		// Bounce rate is a ratio e.g. 0.4632 -> 46.3%
-		const bounce = (parseFloat(metrics[2].value) * 100).toFixed(1) + '%';
-
-		$('#trackly-stat-views').text(views);
-		$('#trackly-stat-users').text(users);
-		$('#trackly-stat-bounce').text(bounce);
-		$('#trackly-stat-duration').text(formatDuration(metrics[3].value));
+	function updateRealtimeSpark(series) {
+		if (!realtimeSpark || !Array.isArray(series)) return;
+		const data = series.map(function(pt) { return intOf(pt.users); });
+		realtimeSpark.updateSeries([{ name: t('users', 'Users'), data: data }]);
 	}
 
 	/**
-	 * Map time series rows to ApexCharts series
+	 * Update aggregate KPI cards.
+	 * Metric order: screenPageViews, activeUsers, sessions, engagementRate, bounceRate, averageSessionDuration
+	 */
+	function updateSummary(summaryData) {
+		if (!summaryData.rows || summaryData.rows.length === 0) return;
+		const r = summaryData.rows[0];
+
+		$('#trackly-stat-views').text(num(metric(r, 0)));
+		$('#trackly-stat-users').text(num(metric(r, 1)));
+		$('#trackly-stat-sessions').text(num(metric(r, 2)));
+		$('#trackly-stat-engagement').text(pct(metric(r, 3)));
+		$('#trackly-stat-bounce').text(pct(metric(r, 4)));
+		$('#trackly-stat-duration').text(formatDuration(metric(r, 5)));
+	}
+
+	/**
+	 * Map time series rows to ApexCharts series (Pageviews, Users, Sessions)
 	 */
 	function updateMainChart(chartData) {
 		const categories = [];
 		const viewsSeries = [];
 		const usersSeries = [];
+		const sessionsSeries = [];
 
 		if (chartData.rows && chartData.rows.length > 0) {
 			chartData.rows.forEach(function(row) {
-				// Parse date e.g. '20260715' -> '15 Tem'
 				const rawDate = dimValue(row);
 				if (!rawDate) return;
 				const year = rawDate.substring(0, 4);
@@ -262,99 +268,189 @@
 				const formattedDate = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
 
 				categories.push(formattedDate);
-				viewsSeries.push(parseInt(row.metricValues[0].value));
-				usersSeries.push(parseInt(row.metricValues[1].value));
+				viewsSeries.push(intOf(metric(row, 0)));
+				usersSeries.push(intOf(metric(row, 1)));
+				sessionsSeries.push(intOf(metric(row, 2)));
 			});
 		}
 
-		mainChart.updateOptions({
-			xaxis: { categories: categories }
-		});
-
+		mainChart.updateOptions({ xaxis: { categories: categories } });
 		mainChart.updateSeries([
 			{ name: t('pageviews', 'Pageviews'), data: viewsSeries },
-			{ name: t('users', 'Users'), data: usersSeries }
+			{ name: t('users', 'Users'), data: usersSeries },
+			{ name: t('sessions', 'Sessions'), data: sessionsSeries }
 		]);
 	}
 
 	/**
-	 * Map traffic sources to Donut Chart
+	 * Generic donut renderer.
 	 */
-	function updateSourceChart(sourcesData) {
+	function renderDonut(chart, rows, labelMap) {
 		const series = [];
 		const labels = [];
-
-		if (sourcesData.rows && sourcesData.rows.length > 0) {
-			sourcesData.rows.forEach(function(row) {
+		if (rows && rows.length > 0) {
+			rows.forEach(function(row) {
 				const label = dimValue(row);
 				if (label === null) return;
-				labels.push(label);
-				series.push(parseInt(row.metricValues[0].value));
+				labels.push(labelMap ? labelMap(label) : label);
+				series.push(intOf(metric(row, 0)));
 			});
 		}
-
-		sourceChart.updateOptions({
-			labels: labels
-		});
-		sourceChart.updateSeries(series);
+		chart.updateOptions({ labels: labels });
+		chart.updateSeries(series);
 	}
 
-	/**
-	 * Map device categories to Donut Chart
-	 */
+	function updateSourceChart(sourcesData) {
+		renderDonut(sourceChart, sourcesData && sourcesData.rows);
+	}
+
 	function updateDeviceChart(devicesData) {
-		const series = [];
-		const labels = [];
-
-		if (devicesData.rows && devicesData.rows.length > 0) {
-			devicesData.rows.forEach(function(row) {
-				const dev = dimValue(row);
-				if (dev === null) return;
-				// Translate device name
-				const translatedDev = dev === 'desktop' ? t('desktop', 'Desktop') : (dev === 'mobile' ? t('mobile', 'Mobile') : t('tablet', 'Tablet'));
-				labels.push(translatedDev);
-				series.push(parseInt(row.metricValues[0].value));
-			});
-		}
-
-		deviceChart.updateOptions({
-			labels: labels
+		renderDonut(deviceChart, devicesData && devicesData.rows, function(dev) {
+			return dev === 'desktop' ? t('desktop', 'Desktop') : (dev === 'mobile' ? t('mobile', 'Mobile') : (dev === 'tablet' ? t('tablet', 'Tablet') : dev));
 		});
-		deviceChart.updateSeries(series);
+	}
+
+	function renderNewVsReturning(data) {
+		renderDonut(nvrChart, data && data.rows, function(v) {
+			return v === 'new' ? t('newVisitors', 'New') : (v === 'returning' ? t('returningVisitors', 'Returning') : v);
+		});
 	}
 
 	/**
-	 * Render Top Pages table
+	 * Render Top Pages table.
+	 * Metric order: screenPageViews, activeUsers, engagementRate, averageSessionDuration
 	 */
 	function updatePagesTable(pagesData) {
 		const $tbody = $('#trackly-pages-table tbody');
 		$tbody.empty();
-
-		if (!pagesData.rows || pagesData.rows.length === 0) {
+		const rows = pagesData && pagesData.rows;
+		if (!rows || rows.length === 0) {
 			$tbody.append('<tr><td colspan="5" class="loading-td">' + escapeHtml(t('noData', 'No data found.')) + '</td></tr>');
 			return;
 		}
-
-		pagesData.rows.forEach(function(row) {
+		rows.forEach(function(row) {
 			const path = dimValue(row);
 			if (path === null) return;
 			const escPath = escapeHtml(path);
 			const escHref = escapeHtml(safeHref(path));
-			const views = parseInt(row.metricValues[0].value).toLocaleString();
-			const users = parseInt(row.metricValues[1].value).toLocaleString();
-			const bounce = (parseFloat(row.metricValues[2].value) * 100).toFixed(1) + '%';
-			const duration = formatDuration(row.metricValues[3].value);
+			$tbody.append(
+				'<tr>' +
+					'<td><a href="' + escHref + '" target="_blank" rel="noopener nofollow" class="trackly-page-link"><code>' + escPath + '</code></a></td>' +
+					'<td><strong>' + num(metric(row, 0)) + '</strong></td>' +
+					'<td>' + num(metric(row, 1)) + '</td>' +
+					'<td>' + pct(metric(row, 2)) + '</td>' +
+					'<td>' + formatDuration(metric(row, 3)) + '</td>' +
+				'</tr>'
+			);
+		});
+	}
 
-			const html = `
-				<tr>
-					<td><a href="${escHref}" target="_blank" rel="noopener nofollow" class="trackly-page-link"><code>${escPath}</code></a></td>
-					<td><strong>${views}</strong></td>
-					<td>${users}</td>
-					<td>${bounce}</td>
-					<td>${duration}</td>
-				</tr>
-			`;
-			$tbody.append(html);
+	/**
+	 * Traffic acquisition table (source/medium).
+	 * Metric order: sessions, activeUsers, engagementRate, keyEvents
+	 */
+	function renderAcquisitionTable(data) {
+		const $tbody = $('#trackly-acquisition-table tbody');
+		$tbody.empty();
+		const rows = data && data.rows;
+		if (!rows || rows.length === 0) {
+			$tbody.append('<tr><td colspan="5" class="loading-td">' + escapeHtml(t('noData', 'No data found.')) + '</td></tr>');
+			return;
+		}
+		rows.forEach(function(row) {
+			const label = dimValue(row);
+			if (label === null) return;
+			$tbody.append(
+				'<tr>' +
+					'<td>' + escapeHtml(label) + '</td>' +
+					'<td><strong>' + num(metric(row, 0)) + '</strong></td>' +
+					'<td>' + num(metric(row, 1)) + '</td>' +
+					'<td>' + pct(metric(row, 2)) + '</td>' +
+					'<td>' + num(metric(row, 3)) + '</td>' +
+				'</tr>'
+			);
+		});
+	}
+
+	/**
+	 * Landing pages table.
+	 * Metric order: sessions, engagementRate, screenPageViews
+	 */
+	function renderLandingTable(data) {
+		const $tbody = $('#trackly-landing-table tbody');
+		$tbody.empty();
+		const rows = data && data.rows;
+		if (!rows || rows.length === 0) {
+			$tbody.append('<tr><td colspan="4" class="loading-td">' + escapeHtml(t('noData', 'No data found.')) + '</td></tr>');
+			return;
+		}
+		rows.forEach(function(row) {
+			const path = dimValue(row);
+			if (path === null) return;
+			const escPath = escapeHtml(path);
+			const escHref = escapeHtml(safeHref(path));
+			$tbody.append(
+				'<tr>' +
+					'<td><a href="' + escHref + '" target="_blank" rel="noopener nofollow" class="trackly-page-link"><code>' + escPath + '</code></a></td>' +
+					'<td><strong>' + num(metric(row, 0)) + '</strong></td>' +
+					'<td>' + pct(metric(row, 1)) + '</td>' +
+					'<td>' + num(metric(row, 2)) + '</td>' +
+				'</tr>'
+			);
+		});
+	}
+
+	/**
+	 * Top countries as a horizontal bar list (avoids a heavy map dependency).
+	 * Metric order: activeUsers
+	 */
+	function renderGeoList(data) {
+		const $wrap = $('#trackly-geo-list');
+		$wrap.empty();
+		const rows = data && data.rows;
+		if (!rows || rows.length === 0) {
+			$wrap.append('<p class="loading-td">' + escapeHtml(t('noData', 'No data found.')) + '</p>');
+			return;
+		}
+		let max = 0;
+		rows.forEach(function(row) { max = Math.max(max, intOf(metric(row, 0))); });
+		max = max || 1;
+		rows.forEach(function(row) {
+			const label = dimValue(row);
+			if (label === null) return;
+			const val = intOf(metric(row, 0));
+			const width = Math.max(2, Math.round((val / max) * 100));
+			$wrap.append(
+				'<div class="trackly-bar-row">' +
+					'<span class="trackly-bar-label">' + escapeHtml(label) + '</span>' +
+					'<span class="trackly-bar-track"><span class="trackly-bar-fill" style="width:' + width + '%"></span></span>' +
+					'<span class="trackly-bar-value">' + num(val) + '</span>' +
+				'</div>'
+			);
+		});
+	}
+
+	/**
+	 * Top events table.
+	 * Metric order: eventCount
+	 */
+	function renderEventsTable(data) {
+		const $tbody = $('#trackly-events-table tbody');
+		$tbody.empty();
+		const rows = data && data.rows;
+		if (!rows || rows.length === 0) {
+			$tbody.append('<tr><td colspan="2" class="loading-td">' + escapeHtml(t('noData', 'No data found.')) + '</td></tr>');
+			return;
+		}
+		rows.forEach(function(row) {
+			const label = dimValue(row);
+			if (label === null) return;
+			$tbody.append(
+				'<tr>' +
+					'<td><code>' + escapeHtml(label) + '</code></td>' +
+					'<td><strong>' + num(metric(row, 0)) + '</strong></td>' +
+				'</tr>'
+			);
 		});
 	}
 

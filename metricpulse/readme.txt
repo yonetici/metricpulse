@@ -12,7 +12,9 @@ A modern Google Analytics 4 dashboard and local click heatmap tracker for WordPr
 
 == Description ==
 
-MetricPulse is a GDPR-conscious, high-performance plugin that brings Google Analytics 4 reports and local click heatmaps directly to your WordPress website. It features a clean administrative analytics dashboard, active traffic and device category metrics, a local click heatmap, standard-deviation based anomaly insights, and a visual GA4 event builder.
+MetricPulse is a GDPR-conscious, high-performance plugin that brings Google Analytics 4 reports and local click heatmaps directly to your WordPress website. The admin dashboard covers the metrics that matter: users, sessions, pageviews, engagement rate and average session duration KPIs; a multi-series traffic trend (7 or 30 days); traffic acquisition by source/medium (including referrers) with engagement and key events; traffic-channel and device breakdowns; top pages and top landing pages; top countries; top events; a new-vs-returning split; and a live "last 30 minutes" active-visitor sparkline. It also includes a local click heatmap, standard-deviation based anomaly insights, and a visual GA4 event builder.
+
+All reports are fetched with batched, cached GA4 Data API calls (respecting the API's 5-reports-per-batch limit) and high-cardinality reports are bounded with ordering and row limits to stay within quota.
 
 This plugin is designed for strict performance and security. Standard visitors only download a lightweight, vanilla JavaScript tracker under 5KB (with zero jQuery or external dependencies), while the heavier stats overlay interface is loaded exclusively for logged-in administrators. The plugin bundles its own fonts and libraries and makes no third-party front-end requests.
 

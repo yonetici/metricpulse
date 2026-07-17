@@ -81,4 +81,11 @@ class Api {
 	public static function get_realtime_users(): int {
 		return self::get_service()->get_realtime_users();
 	}
+
+	/**
+	 * Retrieve last-30-minute active-user series for the realtime sparkline.
+	 */
+	public static function get_realtime_series(): array {
+		return self::get_service()->get_realtime_series();
+	}
 }

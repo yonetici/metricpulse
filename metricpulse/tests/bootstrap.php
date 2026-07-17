@@ -167,4 +167,4 @@ function wp_remote_retrieve_body( $response ) {
 }
 
 // Load PSR-4 Autoloader
-require_once dirname( __DIR__ ) . '/trackly.php';
+require_once dirname( __DIR__ ) . '/metricpulse.php';

@@ -5,7 +5,7 @@
          colors="true"
          verbose="true">
     <testsuites>
-        <testsuite name="Trackly Unit Test Suite">
+        <testsuite name="MetricPulse Unit Test Suite">
             <directory suffix=".php">tests</directory>
             <exclude>tests/bootstrap.php</exclude>
         </testsuite>

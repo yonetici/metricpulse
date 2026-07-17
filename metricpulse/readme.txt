@@ -1,4 +1,4 @@
-=== Trackly ===
+=== MetricPulse ===
 Contributors: ridvan
 Tags: analytics, ga4, heatmaps, dashboard, visitor-tracking
 Requires at least: 6.0

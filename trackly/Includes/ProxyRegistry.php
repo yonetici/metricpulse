@@ -36,44 +36,46 @@ class ProxyRegistry {
 		}
 		update_option( 'trackly_ip_refresh_lock', time() );
 
-		// Use a 15-second timeout to prevent blocking thread execution on slow API queries
-		$args = array(
-			'timeout' => 15,
-		);
+		try {
+			// Use a 15-second timeout to prevent blocking thread execution on slow API queries
+			$args = array(
+				'timeout' => 15,
+			);
 
-		$v4 = wp_remote_get( 'https://www.cloudflare.com/ips-v4', $args );
-		$v6 = wp_remote_get( 'https://www.cloudflare.com/ips-v6', $args );
+			$v4 = wp_remote_get( 'https://www.cloudflare.com/ips-v4', $args );
+			$v6 = wp_remote_get( 'https://www.cloudflare.com/ips-v6', $args );
 
-		$ips = array();
+			$ips = array();
 
-		if ( ! is_wp_error( $v4 ) && 200 === wp_remote_retrieve_response_code( $v4 ) ) {
-			$body = wp_remote_retrieve_body( $v4 );
-			$lines = explode( "\n", $body );
-			foreach ( $lines as $line ) {
-				$line = trim( $line );
-				if ( ! empty( $line ) && self::is_valid_ip_or_cidr( $line ) ) {
-					$ips[] = $line;
+			if ( ! is_wp_error( $v4 ) && 200 === wp_remote_retrieve_response_code( $v4 ) ) {
+				$body = wp_remote_retrieve_body( $v4 );
+				$lines = explode( "\n", $body );
+				foreach ( $lines as $line ) {
+					$line = trim( $line );
+					if ( ! empty( $line ) && self::is_valid_ip_or_cidr( $line ) ) {
+						$ips[] = $line;
+					}
 				}
 			}
-		}
 
-		if ( ! is_wp_error( $v6 ) && 200 === wp_remote_retrieve_response_code( $v6 ) ) {
-			$body = wp_remote_retrieve_body( $v6 );
-			$lines = explode( "\n", $body );
-			foreach ( $lines as $line ) {
-				$line = trim( $line );
-				if ( ! empty( $line ) && self::is_valid_ip_or_cidr( $line ) ) {
-					$ips[] = $line;
+			if ( ! is_wp_error( $v6 ) && 200 === wp_remote_retrieve_response_code( $v6 ) ) {
+				$body = wp_remote_retrieve_body( $v6 );
+				$lines = explode( "\n", $body );
+				foreach ( $lines as $line ) {
+					$line = trim( $line );
+					if ( ! empty( $line ) && self::is_valid_ip_or_cidr( $line ) ) {
+						$ips[] = $line;
+					}
 				}
 			}
-		}
 
-		// Only overwrite option if we received valid IPs to prevent wiping database on temporary connection drop
-		if ( ! empty( $ips ) ) {
-			update_option( 'trackly_cf_proxies', $ips );
+			// Only overwrite option if we received valid IPs to prevent wiping database on temporary connection drop
+			if ( ! empty( $ips ) ) {
+				update_option( 'trackly_cf_proxies', $ips );
+			}
+		} finally {
+			delete_option( 'trackly_ip_refresh_lock' );
 		}
-
-		delete_option( 'trackly_ip_refresh_lock' );
 	}
 
 	/**

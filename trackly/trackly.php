@@ -19,23 +19,27 @@ define( 'TRACKLY_VERSION', '1.0.0' );
 define( 'TRACKLY_PATH', plugin_dir_path( __FILE__ ) );
 define( 'TRACKLY_URL', plugin_dir_url( __FILE__ ) );
 
-// 1. PSR-4 style Class Autoloader to support namespace class loading
-spl_autoload_register( function ( $class ) {
-	$prefix = 'Trackly\\';
-	$base_dir = TRACKLY_PATH;
+// 1. PSR-4 Class Loader (Supports Composer autoloader, defaults to fallback PSR-4 registered autoloader)
+if ( file_exists( TRACKLY_PATH . 'vendor/autoload.php' ) ) {
+	require_once TRACKLY_PATH . 'vendor/autoload.php';
+} else {
+	spl_autoload_register( function ( $class ) {
+		$prefix = 'Trackly\\';
+		$base_dir = TRACKLY_PATH;
 
-	$len = strlen( $prefix );
-	if ( strncmp( $prefix, $class, $len ) !== 0 ) {
-		return;
-	}
+		$len = strlen( $prefix );
+		if ( strncmp( $prefix, $class, $len ) !== 0 ) {
+			return;
+		}
 
-	$relative_class = substr( $class, $len );
-	$file = $base_dir . str_replace( '\\', '/', $relative_class ) . '.php';
+		$relative_class = substr( $class, $len );
+		$file = $base_dir . str_replace( '\\', '/', $relative_class ) . '.php';
 
-	if ( file_exists( $file ) ) {
-		require_once $file;
-	}
-} );
+		if ( file_exists( $file ) ) {
+			require_once $file;
+		}
+	} );
+}
 
 function activate_trackly() {
 	// Dynamically register the weekly interval filter so wp_schedule_event can recognize it on activation (Step 1: Cron registration order)

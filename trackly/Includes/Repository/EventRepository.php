@@ -30,6 +30,11 @@ class EventRepository {
 	 * Create custom database tables.
 	 */
 	public function create_tables(): void {
+		// Strict table name regex checking to eliminate any SQL injection vector on identifier placeholders
+		if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $this->table_name ) ) {
+			throw new \Trackly\Includes\Exception\TracklyException( 'Invalid database table configuration.' );
+		}
+
 		$table_name = $this->table_name;
 
 		// v1.1 to v1.2 migration column cleanup protection
@@ -123,32 +128,39 @@ class EventRepository {
 		}
 		update_option( 'trackly_cleanup_lock', time() );
 
-		$limit = 500;
-		$max_iterations = 100; // Cap execution safety to avoid infinite loops
+		try {
+			$limit = 500;
+			$max_iterations = 100; // Cap execution safety to avoid infinite loops
 
-		for ( $i = 0; $i < $max_iterations; $i++ ) {
-			$deleted = $this->wpdb->query(
-				$this->wpdb->prepare(
-					"DELETE FROM {$this->table_name} WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY) LIMIT %d",
-					$limit
-				)
-			);
+			for ( $i = 0; $i < $max_iterations; $i++ ) {
+				$deleted = $this->wpdb->query(
+					$this->wpdb->prepare(
+						"DELETE FROM {$this->table_name} WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY) LIMIT %d",
+						$limit
+					)
+				);
 
-			if ( false === $deleted || $deleted === 0 ) {
-				break;
+				if ( false === $deleted || $deleted === 0 ) {
+					break;
+				}
+
+				// Yield execution control back to PHP & MySQL server thread (50ms pause)
+				usleep( 50000 );
 			}
-
-			// Yield execution control back to PHP & MySQL server thread (50ms pause)
-			usleep( 50000 );
+		} finally {
+			delete_option( 'trackly_cleanup_lock' );
 		}
-
-		delete_option( 'trackly_cleanup_lock' );
 	}
 
 	/**
 	 * Run upgrade database migrations on version changes.
 	 */
 	public function upgrade( string $from_version ): void {
+		// Strict table name regex checking to eliminate any SQL injection vector on identifier placeholders
+		if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $this->table_name ) ) {
+			throw new \Trackly\Includes\Exception\TracklyException( 'Invalid database table configuration.' );
+		}
+
 		// Execute schema upgrades if the user was running an older version
 		if ( version_compare( $from_version, '1.0.0', '<' ) ) {
 			$index_check = $this->wpdb->get_results( "SHOW INDEX FROM {$this->table_name} WHERE Key_name = 'page_url_created'" );

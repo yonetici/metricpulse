@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Trackly\Includes\Exception;
+namespace MetricPulse\Includes\Exception;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -10,4 +10,4 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Custom Exception class for MetricPulse domain-specific exceptions.
  */
-class TracklyException extends \Exception {}
+class MetricPulseException extends \Exception {}

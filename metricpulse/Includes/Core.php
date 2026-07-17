@@ -1,11 +1,11 @@
 <?php
-namespace Trackly\Includes;
+namespace MetricPulse\Includes;
 
-use Trackly\Admin\Admin;
-use Trackly\Frontend\Tracker;
+use MetricPulse\Admin\Admin;
+use MetricPulse\Frontend\Tracker;
 
 /**
- * Main loader class for Trackly.
+ * Main loader class for MetricPulse.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,7 +19,7 @@ class Core {
 
 	public function __construct() {
 		$this->plugin_name = 'metricpulse';
-		$this->version = TRACKLY_VERSION;
+		$this->version = METRICPULSE_VERSION;
 	}
 
 	public function run() {

@@ -1,12 +1,12 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use Trackly\Includes\Api;
+use MetricPulse\Includes\Api;
 
 class TestApi extends TestCase {
 
 	protected function setUp(): void {
 		// Mock encryption salt
-		update_option( 'trackly_secure_salt', str_repeat( 's', 64 ) );
+		update_option( 'metricpulse_secure_salt', str_repeat( 's', 64 ) );
 	}
 
 	public function test_encryption_decryption() {

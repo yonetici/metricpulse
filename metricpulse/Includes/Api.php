@@ -1,5 +1,5 @@
 <?php
-namespace Trackly\Includes;
+namespace MetricPulse\Includes;
 
 /**
  * Facade class for Google Analytics API integration.
@@ -15,8 +15,8 @@ class Api {
 	/**
 	 * Get an instance of GoogleAnalyticsService.
 	 */
-	private static function get_service(): \Trackly\Includes\Service\GoogleAnalyticsService {
-		return new \Trackly\Includes\Service\GoogleAnalyticsService();
+	private static function get_service(): \MetricPulse\Includes\Service\GoogleAnalyticsService {
+		return new \MetricPulse\Includes\Service\GoogleAnalyticsService();
 	}
 
 	/**

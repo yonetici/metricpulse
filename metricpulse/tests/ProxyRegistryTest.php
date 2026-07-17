@@ -1,6 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use Trackly\Includes\ProxyRegistry;
+use MetricPulse\Includes\ProxyRegistry;
 
 /**
  * Unit tests for Cloudflare IP/CIDR validation (the highest-risk hand-rolled parsing code).

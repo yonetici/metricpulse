@@ -1,6 +1,6 @@
 <?php
 /**
- * Bootstrap file for Trackly PHPUnit tests.
+ * Bootstrap file for MetricPulse PHPUnit tests.
  * Mocks necessary WordPress core components to run unit tests in isolation.
  */
 

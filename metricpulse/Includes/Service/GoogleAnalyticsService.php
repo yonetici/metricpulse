@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Trackly\Includes\Service;
+namespace MetricPulse\Includes\Service;
 
-use Trackly\Includes\Exception\TracklyException;
+use MetricPulse\Includes\Exception\MetricPulseException;
 use WP_Error;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,10 +16,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class GoogleAnalyticsService {
 
-	const TOKEN_KEY = 'trackly_access_token';
-	const BATCH_PREFIX = 'trackly_b_';
-	const REALTIME_KEY = 'trackly_realtime_cache';
-	const CACHE_VERSION_KEY = 'trackly_cache_ver';
+	const TOKEN_KEY = 'metricpulse_access_token';
+	const BATCH_PREFIX = 'metricpulse_b_';
+	const REALTIME_KEY = 'metricpulse_realtime_cache';
+	const CACHE_VERSION_KEY = 'metricpulse_cache_ver';
 
 	// Sentinel returned by get_realtime_users() when the value could not be retrieved (distinct from a genuine 0).
 	const REALTIME_UNAVAILABLE = -1;
@@ -77,10 +77,10 @@ class GoogleAnalyticsService {
 			$key .= NONCE_KEY;
 		}
 
-		$secure_salt = get_option( 'trackly_secure_salt' );
+		$secure_salt = get_option( 'metricpulse_secure_salt' );
 		if ( empty( $secure_salt ) ) {
 			$secure_salt = wp_generate_password( 64, true, true );
-			update_option( 'trackly_secure_salt', $secure_salt, 'no' );
+			update_option( 'metricpulse_secure_salt', $secure_salt, 'no' );
 		}
 		$key .= $secure_salt;
 
@@ -133,25 +133,25 @@ class GoogleAnalyticsService {
 	 * Checks constant, environment variables, filesystem secrets, and option table.
 	 */
 	private function get_credentials_json(): string {
-		if ( defined( 'TRACKLY_GA_JSON' ) && ! empty( TRACKLY_GA_JSON ) ) {
-			return TRACKLY_GA_JSON;
+		if ( defined( 'METRICPULSE_GA_JSON' ) && ! empty( METRICPULSE_GA_JSON ) ) {
+			return METRICPULSE_GA_JSON;
 		}
 
-		$env_val = getenv( 'TRACKLY_GA_JSON' );
+		$env_val = getenv( 'METRICPULSE_GA_JSON' );
 		if ( $env_val && ! empty( $env_val ) ) {
 			return $env_val;
 		}
 
-		if ( file_exists( '/etc/secrets/trackly.json' ) ) {
+		if ( file_exists( '/etc/secrets/metricpulse.json' ) ) {
 			// Reading a local, server-operator-provided secrets file (not a remote URL); WP_Filesystem is unnecessary here.
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-			$file_val = file_get_contents( '/etc/secrets/trackly.json' );
+			$file_val = file_get_contents( '/etc/secrets/metricpulse.json' );
 			if ( $file_val ) {
 				return $file_val;
 			}
 		}
 
-		$credentials_encrypted = get_option( 'trackly_credentials' );
+		$credentials_encrypted = get_option( 'metricpulse_credentials' );
 		if ( ! empty( $credentials_encrypted ) ) {
 			return $this->decrypt_data( (string) $credentials_encrypted );
 		}
@@ -168,14 +168,14 @@ class GoogleAnalyticsService {
 	 * misconfiguration apart from an intentional demo.
 	 */
 	public function is_demo_mode(): bool {
-		return get_option( 'trackly_demo_mode', 'yes' ) === 'yes';
+		return get_option( 'metricpulse_demo_mode', 'yes' ) === 'yes';
 	}
 
 	/**
 	 * Whether real GA4 credentials are present and structurally usable.
 	 */
 	public function is_configured(): bool {
-		$property_id = get_option( 'trackly_property_id' );
+		$property_id = get_option( 'metricpulse_property_id' );
 		if ( empty( $property_id ) ) {
 			return false;
 		}
@@ -296,7 +296,7 @@ class GoogleAnalyticsService {
 			return is_array( $cached ) ? $cached : array();
 		}
 
-		$property_id = get_option( 'trackly_property_id', '' );
+		$property_id = get_option( 'metricpulse_property_id', '' );
 		$token = $this->get_access_token();
 		if ( is_wp_error( $token ) ) {
 			return $token;
@@ -416,7 +416,7 @@ class GoogleAnalyticsService {
 			return self::REALTIME_UNAVAILABLE;
 		}
 
-		$property_id = get_option( 'trackly_property_id', '' );
+		$property_id = get_option( 'metricpulse_property_id', '' );
 		$token = $this->get_access_token();
 		if ( is_wp_error( $token ) ) {
 			return self::REALTIME_UNAVAILABLE;
@@ -658,7 +658,7 @@ class GoogleAnalyticsService {
 			return array();
 		}
 
-		$property_id = get_option( 'trackly_property_id', '' );
+		$property_id = get_option( 'metricpulse_property_id', '' );
 		$token       = $this->get_access_token();
 		if ( is_wp_error( $token ) ) {
 			return array();

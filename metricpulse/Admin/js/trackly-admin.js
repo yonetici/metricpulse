@@ -12,10 +12,10 @@
 	let realtimeInterval = null;
 
 	// Site locale (e.g. "tr-TR") for date formatting; falls back to the browser locale.
-	const LOCALE = (typeof tracklyData !== 'undefined' && tracklyData.locale) ? tracklyData.locale : undefined;
+	const LOCALE = (typeof metricpulseData !== 'undefined' && metricpulseData.locale) ? metricpulseData.locale : undefined;
 
 	// Translatable strings with English fallbacks.
-	const I18N = (typeof tracklyData !== 'undefined' && tracklyData.i18n) ? tracklyData.i18n : {};
+	const I18N = (typeof metricpulseData !== 'undefined' && metricpulseData.i18n) ? metricpulseData.i18n : {};
 	function t(key, fallback) {
 		return (I18N && I18N[key]) ? I18N[key] : fallback;
 	}
@@ -25,7 +25,7 @@
 		try {
 			fn();
 		} catch (e) {
-			if (typeof tracklyData !== 'undefined' && tracklyData.debug) {
+			if (typeof metricpulseData !== 'undefined' && metricpulseData.debug) {
 				console.error('MetricPulse render error: ', e);
 			}
 		}
@@ -161,15 +161,15 @@
 	 */
 	function loadDashboardData(days) {
 		$.ajax({
-			url: tracklyData.rest_url + '/stats',
+			url: metricpulseData.rest_url + '/stats',
 			method: 'GET',
 			data: { days: days },
 			beforeSend: function(xhr) {
-				xhr.setRequestHeader('X-WP-Nonce', tracklyData.rest_nonce);
+				xhr.setRequestHeader('X-WP-Nonce', metricpulseData.rest_nonce);
 			},
 			success: function(res) {
 				if (!res.success) {
-					if (typeof tracklyData !== 'undefined' && tracklyData.debug) {
+					if (typeof metricpulseData !== 'undefined' && metricpulseData.debug) {
 						console.error('GA Data retrieval failed: ', res.error);
 					}
 					return;
@@ -189,7 +189,7 @@
 				safe(function() { updateRealtimeSpark(res.realtime_series); });
 			},
 			error: function(err) {
-				if (typeof tracklyData !== 'undefined' && tracklyData.debug) {
+				if (typeof metricpulseData !== 'undefined' && metricpulseData.debug) {
 					console.error('AJAX Error: ', err);
 				}
 			}
@@ -205,10 +205,10 @@
 				return;
 			}
 			$.ajax({
-				url: tracklyData.rest_url + '/realtime',
+				url: metricpulseData.rest_url + '/realtime',
 				method: 'GET',
 				beforeSend: function(xhr) {
-					xhr.setRequestHeader('X-WP-Nonce', tracklyData.rest_nonce);
+					xhr.setRequestHeader('X-WP-Nonce', metricpulseData.rest_nonce);
 				},
 				success: function(res) {
 					if (res.success) {

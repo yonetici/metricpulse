@@ -77,7 +77,7 @@
 		}
 
 		// If strict GDPR consent is required and no consent plugin is active, deny tracking by default (Strict Opt-In)
-		const requireConsent = parseInt( window.tracklyTrackerData.require_consent ) === 1;
+		const requireConsent = parseInt( window.metricpulseTrackerData.require_consent ) === 1;
 		if ( requireConsent && ! consentPluginDetected ) {
 			return false;
 		}
@@ -89,16 +89,16 @@
 	 * Evaluate session-based random sampling
 	 */
 	function isSampled() {
-		const rate = parseInt( window.tracklyTrackerData.sampling_rate ) || 100;
+		const rate = parseInt( window.metricpulseTrackerData.sampling_rate ) || 100;
 		if ( rate >= 100 ) {
 			return true;
 		}
 
-		let sampled = sessionStorage.getItem('trackly_is_sampled');
+		let sampled = sessionStorage.getItem('metricpulse_is_sampled');
 		if ( sampled === null ) {
 			const rand = Math.floor( Math.random() * 100 ) + 1;
 			sampled = ( rand <= rate ) ? 'true' : 'false';
-			sessionStorage.setItem('trackly_is_sampled', sampled);
+			sessionStorage.setItem('metricpulse_is_sampled', sampled);
 		}
 
 		return sampled === 'true';
@@ -106,16 +106,16 @@
 
 	function initTracker() {
 		// Teardown existing listeners to prevent leaks if re-initialized (Step 5: Memory Leak Protection)
-		if ( typeof window.tracklyTrackerAbort === 'function' ) {
+		if ( typeof window.metricpulseTrackerAbort === 'function' ) {
 			try {
-				window.tracklyTrackerAbort();
+				window.metricpulseTrackerAbort();
 			} catch(e) {}
 		}
 
 		const controller = new AbortController();
 		const signalOption = { signal: controller.signal };
 
-		window.tracklyTrackerAbort = function() {
+		window.metricpulseTrackerAbort = function() {
 			controller.abort();
 		};
 
@@ -126,7 +126,7 @@
 			}
 
 			// Do not log clicks when element selector mode is active
-			if ( window.tracklySelectorModeActive ) {
+			if ( window.metricpulseSelectorModeActive ) {
 				return;
 			}
 
@@ -147,7 +147,7 @@
 			);
 
 			const clickData = {
-				page_url: window.tracklyTrackerData.page_url,
+				page_url: window.metricpulseTrackerData.page_url,
 				element_tag: e.target.tagName.toLowerCase(),
 				element_selector: selector,
 				click_x_pct: parseFloat(((e.pageX / docWidth) * 100).toFixed(2)),
@@ -182,7 +182,7 @@
 		// Send the whole batch in ONE request (this is the point of batching). The endpoint
 		// authorizes anonymous writes by same-origin, so no nonce is needed (nonces break under
 		// full-page caching for logged-out visitors).
-		fetch(window.tracklyTrackerData.rest_url + '/record-click', {
+		fetch(window.metricpulseTrackerData.rest_url + '/record-click', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -253,5 +253,5 @@
 		}
 		return path.join(' > ');
 	}
-	window.tracklyGetUniqueSelector = getUniqueSelector;
+	window.metricpulseGetUniqueSelector = getUniqueSelector;
 })();

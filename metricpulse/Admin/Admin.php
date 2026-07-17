@@ -1,8 +1,8 @@
 <?php
-namespace Trackly\Admin;
+namespace MetricPulse\Admin;
 
-use Trackly\Includes\Api;
-use Trackly\Includes\Database;
+use MetricPulse\Includes\Api;
+use MetricPulse\Includes\Database;
 use WP_REST_Response;
 
 /**
@@ -38,35 +38,35 @@ class Admin {
 	 * Register settings under WordPress Settings API.
 	 */
 	public function register_settings() {
-		register_setting( 'trackly_settings_group', 'trackly_demo_mode', array(
+		register_setting( 'metricpulse_settings_group', 'metricpulse_demo_mode', array(
 			'type'              => 'string',
 			'default'           => 'yes',
 			'sanitize_callback' => 'sanitize_text_field',
 		) );
-		register_setting( 'trackly_settings_group', 'trackly_property_id', array(
+		register_setting( 'metricpulse_settings_group', 'metricpulse_property_id', array(
 			'type'              => 'string',
 			'default'           => '',
 			'sanitize_callback' => 'sanitize_text_field',
 		) );
-		register_setting( 'trackly_settings_group', 'trackly_credentials', array(
+		register_setting( 'metricpulse_settings_group', 'metricpulse_credentials', array(
 			'type'              => 'string',
 			'default'           => '',
 			'sanitize_callback' => array( $this, 'sanitize_and_encrypt_credentials' ),
 		) );
 		// Sampling rate option to prevent database table bloat
-		register_setting( 'trackly_settings_group', 'trackly_sampling_rate', array(
+		register_setting( 'metricpulse_settings_group', 'metricpulse_sampling_rate', array(
 			'type'              => 'string',
 			'default'           => '100',
 			'sanitize_callback' => 'sanitize_text_field',
 		) );
 		// Require consent option for GDPR compliance
-		register_setting( 'trackly_settings_group', 'trackly_require_consent', array(
+		register_setting( 'metricpulse_settings_group', 'metricpulse_require_consent', array(
 			'type'              => 'string',
 			'default'           => 'yes',
 			'sanitize_callback' => 'sanitize_text_field',
 		) );
 		// Whether to delete all stored data (table + options) when the plugin is uninstalled.
-		register_setting( 'trackly_settings_group', 'trackly_delete_data', array(
+		register_setting( 'metricpulse_settings_group', 'metricpulse_delete_data', array(
 			'type'              => 'string',
 			'default'           => 'no',
 			'sanitize_callback' => 'sanitize_text_field',
@@ -89,13 +89,13 @@ class Admin {
 			if ( ! empty( $decrypted ) && null !== json_decode( $decrypted ) ) {
 				return $value;
 			}
-			add_settings_error( 'trackly_credentials', 'invalid_json', __( 'Invalid JSON format.', 'metricpulse' ) );
-			return get_option( 'trackly_credentials', '' );
+			add_settings_error( 'metricpulse_credentials', 'invalid_json', __( 'Invalid JSON format.', 'metricpulse' ) );
+			return get_option( 'metricpulse_credentials', '' );
 		}
 
 		// Preserve actual key if user submitted placeholder masking sentinel pattern
-		if ( isset( $decoded['private_key'] ) && $decoded['private_key'] === '___TRACKLY_MASKED_KEY___' ) {
-			$existing_encrypted = get_option( 'trackly_credentials', '' );
+		if ( isset( $decoded['private_key'] ) && $decoded['private_key'] === '___METRICPULSE_MASKED_KEY___' ) {
+			$existing_encrypted = get_option( 'metricpulse_credentials', '' );
 			if ( ! empty( $existing_encrypted ) ) {
 				$existing_raw = Api::decrypt_data( $existing_encrypted );
 				$existing_decoded = json_decode( $existing_raw, true );
@@ -129,7 +129,7 @@ class Admin {
 	 * Cache-busting asset version: the file's modification time, falling back to the plugin version.
 	 */
 	private function asset_version( string $relative ): string {
-		$file = TRACKLY_PATH . $relative;
+		$file = METRICPULSE_PATH . $relative;
 		$mtime = file_exists( $file ) ? filemtime( $file ) : false;
 		return $mtime ? (string) $mtime : $this->version;
 	}
@@ -143,16 +143,16 @@ class Admin {
 		}
 
 		// Enqueue Localized ApexCharts (No longer loading from CDN)
-		wp_enqueue_script( 'apexcharts', TRACKLY_URL . 'Admin/js/vendor/apexcharts.min.js', array(), '3.41.0', true );
+		wp_enqueue_script( 'apexcharts', METRICPULSE_URL . 'Admin/js/vendor/apexcharts.min.js', array(), '3.41.0', true );
 
 		// Local Admin CSS & JS (Minified). Versioned by file mtime so browsers always pick up
 		// updated assets instead of serving a stale copy cached under a fixed version string.
-		wp_enqueue_style( $this->plugin_name . '-admin-css', TRACKLY_URL . 'Admin/css/trackly-admin.min.css', array(), $this->asset_version( 'Admin/css/trackly-admin.min.css' ) );
-		wp_enqueue_script( $this->plugin_name . '-admin-js', TRACKLY_URL . 'Admin/js/trackly-admin.min.js', array( 'jquery', 'apexcharts' ), $this->asset_version( 'Admin/js/trackly-admin.min.js' ), true );
+		wp_enqueue_style( $this->plugin_name . '-admin-css', METRICPULSE_URL . 'Admin/css/trackly-admin.min.css', array(), $this->asset_version( 'Admin/css/trackly-admin.min.css' ) );
+		wp_enqueue_script( $this->plugin_name . '-admin-js', METRICPULSE_URL . 'Admin/js/trackly-admin.min.js', array( 'jquery', 'apexcharts' ), $this->asset_version( 'Admin/js/trackly-admin.min.js' ), true );
 
 		// Localize Script for REST API URL, Nonce, connection state & translatable UI strings
-		wp_localize_script( $this->plugin_name . '-admin-js', 'tracklyData', array(
-			'rest_url'    => esc_url_raw( rest_url( 'trackly/v1' ) ),
+		wp_localize_script( $this->plugin_name . '-admin-js', 'metricpulseData', array(
+			'rest_url'    => esc_url_raw( rest_url( 'metricpulse/v1' ) ),
 			'rest_nonce'  => wp_create_nonce( 'wp_rest' ),
 			'debug'       => defined( 'WP_DEBUG' ) && WP_DEBUG,
 			'state'       => Api::get_connection_state(),
@@ -183,11 +183,11 @@ class Admin {
 			Api::flush_cache();
 		}
 
-		$demo_mode = get_option( 'trackly_demo_mode', 'yes' );
-		$property_id = get_option( 'trackly_property_id', '' );
-		$credentials_encrypted = get_option( 'trackly_credentials', '' );
-		$sampling_rate = get_option( 'trackly_sampling_rate', '100' );
-		$require_consent = get_option( 'trackly_require_consent', 'yes' );
+		$demo_mode = get_option( 'metricpulse_demo_mode', 'yes' );
+		$property_id = get_option( 'metricpulse_property_id', '' );
+		$credentials_encrypted = get_option( 'metricpulse_credentials', '' );
+		$sampling_rate = get_option( 'metricpulse_sampling_rate', '100' );
+		$require_consent = get_option( 'metricpulse_require_consent', 'yes' );
 		
 		// Decrypt credentials and mask the private key to prevent screen exposure
 		$credentials_raw = Api::decrypt_data( $credentials_encrypted );
@@ -195,14 +195,14 @@ class Admin {
 		if ( ! empty( $credentials_raw ) ) {
 			$creds_obj = json_decode( $credentials_raw, true );
 			if ( is_array( $creds_obj ) ) {
-				$creds_obj['private_key'] = '___TRACKLY_MASKED_KEY___';
+				$creds_obj['private_key'] = '___METRICPULSE_MASKED_KEY___';
 				$credentials = wp_json_encode( $creds_obj, JSON_PRETTY_PRINT );
 			}
 		}
 		?>
 		<div class="trackly-admin-wrapper">
 			<!-- Settings errors output added here (Fixes hidden validation errors QA bug) -->
-			<?php settings_errors( 'trackly_credentials' ); ?>
+			<?php settings_errors( 'metricpulse_credentials' ); ?>
 
 			<!-- Header -->
 			<header class="trackly-header">
@@ -441,14 +441,14 @@ class Admin {
 					<h3><?php esc_html_e( 'Google Analytics Integration Settings', 'metricpulse' ); ?></h3>
 					<form method="post" action="options.php">
 						<?php
-						settings_fields( 'trackly_settings_group' );
-						do_settings_sections( 'trackly_settings_group' );
+						settings_fields( 'metricpulse_settings_group' );
+						do_settings_sections( 'metricpulse_settings_group' );
 						?>
 
 						<div class="trackly-form-group">
 							<label class="trackly-switch-label">
-								<input type="hidden" name="trackly_demo_mode" value="no">
-								<input type="checkbox" name="trackly_demo_mode" value="yes" <?php checked( $demo_mode, 'yes' ); ?>>
+								<input type="hidden" name="metricpulse_demo_mode" value="no">
+								<input type="checkbox" name="metricpulse_demo_mode" value="yes" <?php checked( $demo_mode, 'yes' ); ?>>
 								<span class="trackly-switch-slider"></span>
 								<div class="label-text">
 									<strong><?php esc_html_e( 'Enable Demo (Mock) Mode', 'metricpulse' ); ?></strong>
@@ -459,8 +459,8 @@ class Admin {
 
 						<div class="trackly-form-group">
 							<label class="trackly-switch-label">
-								<input type="hidden" name="trackly_require_consent" value="no">
-								<input type="checkbox" name="trackly_require_consent" value="yes" <?php checked( $require_consent, 'yes' ); ?>>
+								<input type="hidden" name="metricpulse_require_consent" value="no">
+								<input type="checkbox" name="metricpulse_require_consent" value="yes" <?php checked( $require_consent, 'yes' ); ?>>
 								<span class="trackly-switch-slider"></span>
 								<div class="label-text">
 									<strong><?php esc_html_e( 'Require Cookie Consent (Strict GDPR)', 'metricpulse' ); ?></strong>
@@ -470,14 +470,14 @@ class Admin {
 						</div>
 
 						<div class="trackly-form-group">
-							<label for="trackly_property_id"><?php esc_html_e( 'GA4 Property ID', 'metricpulse' ); ?></label>
-							<input type="text" id="trackly_property_id" name="trackly_property_id" value="<?php echo esc_attr( $property_id ); ?>" placeholder="e.g. 382901248" class="regular-text">
+							<label for="metricpulse_property_id"><?php esc_html_e( 'GA4 Property ID', 'metricpulse' ); ?></label>
+							<input type="text" id="metricpulse_property_id" name="metricpulse_property_id" value="<?php echo esc_attr( $property_id ); ?>" placeholder="e.g. 382901248" class="regular-text">
 							<p class="description"><?php esc_html_e( 'The numeric Property ID of your Google Analytics property (Can be found in Admin > Property Settings).', 'metricpulse' ); ?></p>
 						</div>
 
 						<div class="trackly-form-group">
-							<label for="trackly_credentials"><?php esc_html_e( 'Service Account JSON Key', 'metricpulse' ); ?></label>
-							<textarea id="trackly_credentials" name="trackly_credentials" rows="8" class="large-text code" placeholder='{"type": "service_account", ...}'><?php echo esc_textarea( $credentials ); ?></textarea>
+							<label for="metricpulse_credentials"><?php esc_html_e( 'Service Account JSON Key', 'metricpulse' ); ?></label>
+							<textarea id="metricpulse_credentials" name="metricpulse_credentials" rows="8" class="large-text code" placeholder='{"type": "service_account", ...}'><?php echo esc_textarea( $credentials ); ?></textarea>
 							<p class="description"><?php esc_html_e( 'Paste the contents of the Service Account JSON key file you created in the Google Cloud Console. Make sure to add this service account\'s email as a Viewer to your GA4 property.', 'metricpulse' ); ?></p>
 
 							<details class="trackly-help">
@@ -543,8 +543,8 @@ class Admin {
 
 						<!-- Sampling Rate Option Selector to prevent DB bloat -->
 						<div class="trackly-form-group">
-							<label for="trackly_sampling_rate"><?php esc_html_e( 'Click Sampling Rate', 'metricpulse' ); ?></label>
-							<select id="trackly_sampling_rate" name="trackly_sampling_rate">
+							<label for="metricpulse_sampling_rate"><?php esc_html_e( 'Click Sampling Rate', 'metricpulse' ); ?></label>
+							<select id="metricpulse_sampling_rate" name="metricpulse_sampling_rate">
 								<option value="100" <?php selected( $sampling_rate, '100' ); ?>><?php esc_html_e( '100% (Record all clicks)', 'metricpulse' ); ?></option>
 								<option value="50" <?php selected( $sampling_rate, '50' ); ?>><?php esc_html_e( '50% (Record half of all clicks)', 'metricpulse' ); ?></option>
 								<option value="25" <?php selected( $sampling_rate, '25' ); ?>><?php esc_html_e( '25% (Record a quarter of all clicks)', 'metricpulse' ); ?></option>
@@ -555,8 +555,8 @@ class Admin {
 
 						<div class="trackly-form-group">
 							<label class="trackly-switch-label">
-								<input type="hidden" name="trackly_delete_data" value="no">
-								<input type="checkbox" name="trackly_delete_data" value="yes" <?php checked( get_option( 'trackly_delete_data', 'no' ), 'yes' ); ?>>
+								<input type="hidden" name="metricpulse_delete_data" value="no">
+								<input type="checkbox" name="metricpulse_delete_data" value="yes" <?php checked( get_option( 'metricpulse_delete_data', 'no' ), 'yes' ); ?>>
 								<span class="trackly-switch-slider"></span>
 								<div class="label-text">
 									<strong><?php esc_html_e( 'Delete all data on uninstall', 'metricpulse' ); ?></strong>
@@ -577,37 +577,37 @@ class Admin {
 	 * Register WordPress REST API Routes.
 	 */
 	public function register_rest_routes() {
-		register_rest_route( 'trackly/v1', '/stats', array(
+		register_rest_route( 'metricpulse/v1', '/stats', array(
 			'methods'             => 'GET',
 			'callback'            => array( $this, 'get_stats_callback' ),
 			'permission_callback' => array( $this, 'check_admin_permissions' ),
 		) );
 
-		register_rest_route( 'trackly/v1', '/realtime', array(
+		register_rest_route( 'metricpulse/v1', '/realtime', array(
 			'methods'             => 'GET',
 			'callback'            => array( $this, 'get_realtime_callback' ),
 			'permission_callback' => array( $this, 'check_admin_permissions' ),
 		) );
 
-		register_rest_route( 'trackly/v1', '/page-stats', array(
+		register_rest_route( 'metricpulse/v1', '/page-stats', array(
 			'methods'             => 'GET',
 			'callback'            => array( $this, 'get_page_stats_callback' ),
 			'permission_callback' => array( $this, 'check_admin_permissions' ),
 		) );
 
-		register_rest_route( 'trackly/v1', '/record-click', array(
+		register_rest_route( 'metricpulse/v1', '/record-click', array(
 			'methods'             => 'POST',
 			'callback'            => array( $this, 'record_click_callback' ),
 			'permission_callback' => array( $this, 'check_public_click_permissions' ),
 		) );
 
-		register_rest_route( 'trackly/v1', '/clicks', array(
+		register_rest_route( 'metricpulse/v1', '/clicks', array(
 			'methods'             => 'GET',
 			'callback'            => array( $this, 'get_clicks_callback' ),
 			'permission_callback' => array( $this, 'check_admin_permissions' ),
 		) );
 
-		register_rest_route( 'trackly/v1', '/save-event', array(
+		register_rest_route( 'metricpulse/v1', '/save-event', array(
 			'methods'             => 'POST',
 			'callback'            => array( $this, 'save_event_callback' ),
 			'permission_callback' => array( $this, 'check_admin_permissions' ),
@@ -618,7 +618,7 @@ class Admin {
 	 * Verify if current user has permission to view reports.
 	 */
 	public function check_admin_permissions() {
-		return current_user_can( 'trackly_view_dashboard' ) || current_user_can( 'manage_options' );
+		return current_user_can( 'metricpulse_view_dashboard' ) || current_user_can( 'manage_options' );
 	}
 
 	/**
@@ -659,7 +659,7 @@ class Admin {
 	private function get_ip_address() {
 		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '0.0.0.0';
 
-		$cached_proxies = get_option( 'trackly_cf_proxies', array() );
+		$cached_proxies = get_option( 'metricpulse_cf_proxies', array() );
 		$default_proxies = ! empty( $cached_proxies ) ? $cached_proxies : array(
 			'173.245.48.0/20',
 			'103.21.244.0/22',
@@ -679,7 +679,7 @@ class Admin {
 		);
 
 		// Allow developers to override/append trusted proxy CIDRs
-		$trusted_proxies = apply_filters( 'trackly_trusted_proxies', $default_proxies );
+		$trusted_proxies = apply_filters( 'metricpulse_trusted_proxies', $default_proxies );
 
 		if ( ! empty( $trusted_proxies ) ) {
 			$is_trusted = false;
@@ -912,7 +912,7 @@ class Admin {
 		$daily_report = isset( $batch_reports[1] ) ? $batch_reports[1] : array();
 
 		// Generate standard-deviation based insights
-		$heatmap_service = new \Trackly\Includes\Service\HeatmapService();
+		$heatmap_service = new \MetricPulse\Includes\Service\HeatmapService();
 		$insights        = $heatmap_service->generate_statistical_insights( $daily_report, $report );
 
 		return new WP_REST_Response( array(
@@ -929,7 +929,7 @@ class Admin {
 	public function record_click_callback( $request ) {
 		// Fixed 60s window rate limit per IP, counting REQUESTS (each request may carry a batch of clicks).
 		$ip = $this->get_ip_address();
-		$transient_key = 'trackly_rate_' . md5( $ip );
+		$transient_key = 'metricpulse_rate_' . md5( $ip );
 		$requests = get_transient( $transient_key );
 
 		if ( false === $requests ) {
@@ -1006,7 +1006,7 @@ class Admin {
 			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'Invalid CSS Selector payload.', 'metricpulse' ) ), 400 );
 		}
 
-		$saved_events = get_option( 'trackly_custom_events', array() );
+		$saved_events = get_option( 'metricpulse_custom_events', array() );
 		if ( ! is_array( $saved_events ) ) {
 			$saved_events = array();
 		}
@@ -1029,7 +1029,7 @@ class Admin {
 			'created_at' => current_time( 'mysql' ),
 		);
 
-		update_option( 'trackly_custom_events', $saved_events );
+		update_option( 'metricpulse_custom_events', $saved_events );
 
 		return new WP_REST_Response( array( 'success' => true, 'events' => $saved_events ), 200 );
 	}

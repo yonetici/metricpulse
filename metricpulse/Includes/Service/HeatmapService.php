@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Trackly\Includes\Service;
+namespace MetricPulse\Includes\Service;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

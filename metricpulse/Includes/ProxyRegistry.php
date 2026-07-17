@@ -1,5 +1,5 @@
 <?php
-namespace Trackly\Includes;
+namespace MetricPulse\Includes;
 
 /**
  * Cloudflare and reverse proxy IP range sync and validation engine.
@@ -30,7 +30,7 @@ class ProxyRegistry {
 	 */
 	public static function refresh_cf_ips() {
 		// Genuinely atomic lock via add_option() INSERT (see Database::acquire_lock()).
-		if ( ! \Trackly\Includes\Database::acquire_lock( 'trackly_ip_refresh_lock', 600 ) ) {
+		if ( ! \MetricPulse\Includes\Database::acquire_lock( 'metricpulse_ip_refresh_lock', 600 ) ) {
 			return; // Another refresh is already running / ran recently.
 		}
 
@@ -69,10 +69,10 @@ class ProxyRegistry {
 
 			// Only overwrite option if we received valid IPs to prevent wiping database on temporary connection drop
 			if ( ! empty( $ips ) ) {
-				update_option( 'trackly_cf_proxies', $ips );
+				update_option( 'metricpulse_cf_proxies', $ips );
 			}
 		} finally {
-			\Trackly\Includes\Database::release_lock( 'trackly_ip_refresh_lock' );
+			\MetricPulse\Includes\Database::release_lock( 'metricpulse_ip_refresh_lock' );
 		}
 	}
 

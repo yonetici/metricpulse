@@ -1,8 +1,8 @@
 <?php
-namespace Trackly\Frontend;
+namespace MetricPulse\Frontend;
 
-use Trackly\Includes\Api;
-use Trackly\Includes\Database;
+use MetricPulse\Includes\Api;
+use MetricPulse\Includes\Database;
 
 /**
  * Public Front-End hooks and rendering handlers.
@@ -26,7 +26,7 @@ class Tracker {
 	 * Cache-busting asset version: the file's modification time, falling back to the plugin version.
 	 */
 	private function asset_version( $relative ) {
-		$file = TRACKLY_PATH . $relative;
+		$file = METRICPULSE_PATH . $relative;
 		$mtime = file_exists( $file ) ? filemtime( $file ) : false;
 		return $mtime ? (string) $mtime : $this->version;
 	}
@@ -50,7 +50,7 @@ class Tracker {
 	 * Disable full-page caching only for users who can see the live admin overlay.
 	 */
 	public function maybe_disable_cache_for_admins() {
-		if ( ! current_user_can( 'trackly_view_dashboard' ) && ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'metricpulse_view_dashboard' ) && ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
@@ -69,36 +69,36 @@ class Tracker {
 		// Detect exact canonical path/query structure
 		global $wp;
 		$current_url = home_url( add_query_arg( array(), $wp->request ) );
-		$sampling_rate = get_option( 'trackly_sampling_rate', '100' );
+		$sampling_rate = get_option( 'metricpulse_sampling_rate', '100' );
 		// Default to strict opt-in ('yes') to match the registered setting default and the GDPR branding.
-		$require_consent = get_option( 'trackly_require_consent', 'yes' ) === 'yes';
+		$require_consent = get_option( 'metricpulse_require_consent', 'yes' ) === 'yes';
 
 		// 1. Zero-Footprint vanilla tracking engine loaded dynamically for all visitors (Minified)
-		wp_enqueue_script( $this->plugin_name . '-tracker-js', TRACKLY_URL . 'Public/js/trackly-tracker.min.js', array(), $this->asset_version( 'Public/js/trackly-tracker.min.js' ), true );
+		wp_enqueue_script( $this->plugin_name . '-tracker-js', METRICPULSE_URL . 'Public/js/trackly-tracker.min.js', array(), $this->asset_version( 'Public/js/trackly-tracker.min.js' ), true );
 		// No nonce: the /record-click endpoint authorizes anonymous writes by same-origin + rate limit,
 		// which (unlike a cached nonce) survives full-page caching. See Admin::check_public_click_permissions().
 		$tracker_data = array(
-			'rest_url'        => esc_url_raw( rest_url( 'trackly/v1' ) ),
+			'rest_url'        => esc_url_raw( rest_url( 'metricpulse/v1' ) ),
 			'page_url'        => $current_url,
 			'sampling_rate'   => intval( $sampling_rate ), // Passes rate (e.g. 10, 25, 50, 100)
 			'require_consent' => $require_consent,
 		);
-		wp_add_inline_script( $this->plugin_name . '-tracker-js', 'const tracklyTrackerData = ' . wp_json_encode( $tracker_data ) . ';', 'before' );
+		wp_add_inline_script( $this->plugin_name . '-tracker-js', 'const metricpulseTrackerData = ' . wp_json_encode( $tracker_data ) . ';', 'before' );
 
 		// 2. Load heavy admin panel JS/CSS ONLY for users with dashboard view capabilities (Core Web Vitals Optimisation, Minified)
-		if ( current_user_can( 'trackly_view_dashboard' ) || current_user_can( 'manage_options' ) ) {
-			wp_enqueue_style( $this->plugin_name . '-public-css', TRACKLY_URL . 'Public/css/trackly-public.min.css', array(), $this->asset_version( 'Public/css/trackly-public.min.css' ) );
-			wp_enqueue_script( $this->plugin_name . '-public-js', TRACKLY_URL . 'Public/js/trackly-public.min.js', array( 'jquery' ), $this->asset_version( 'Public/js/trackly-public.min.js' ), true );
+		if ( current_user_can( 'metricpulse_view_dashboard' ) || current_user_can( 'manage_options' ) ) {
+			wp_enqueue_style( $this->plugin_name . '-public-css', METRICPULSE_URL . 'Public/css/trackly-public.min.css', array(), $this->asset_version( 'Public/css/trackly-public.min.css' ) );
+			wp_enqueue_script( $this->plugin_name . '-public-js', METRICPULSE_URL . 'Public/js/trackly-public.min.js', array( 'jquery' ), $this->asset_version( 'Public/js/trackly-public.min.js' ), true );
 
 			$public_data = array(
-				'rest_url'   => esc_url_raw( rest_url( 'trackly/v1' ) ),
+				'rest_url'   => esc_url_raw( rest_url( 'metricpulse/v1' ) ),
 				'rest_nonce' => wp_create_nonce( 'wp_rest' ),
 				'page_url'   => $current_url,
 				'is_admin'   => 1,
-				'is_demo'    => \Trackly\Includes\Api::is_demo_mode() ? 1 : 0,
+				'is_demo'    => \MetricPulse\Includes\Api::is_demo_mode() ? 1 : 0,
 				'admin_url'  => esc_url( admin_url( 'admin.php?page=' . $this->plugin_name ) ),
 			);
-			wp_add_inline_script( $this->plugin_name . '-public-js', 'const tracklyPublicData = ' . wp_json_encode( $public_data ) . ';', 'before' );
+			wp_add_inline_script( $this->plugin_name . '-public-js', 'const metricpulsePublicData = ' . wp_json_encode( $public_data ) . ';', 'before' );
 		}
 	}
 
@@ -106,13 +106,13 @@ class Tracker {
 	 * Render the gorgeous glassmorphism overlay bar in the footer for administrators.
 	 */
 	public function render_floating_stats_bar() {
-		if ( ! current_user_can( 'trackly_view_dashboard' ) && ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'metricpulse_view_dashboard' ) && ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 
 		// Cache exclusion is handled earlier on template_redirect (see maybe_disable_cache_for_admins).
 
-		$is_demo = \Trackly\Includes\Api::is_demo_mode();
+		$is_demo = \MetricPulse\Includes\Api::is_demo_mode();
 
 		global $wp;
 		$current_path = wp_parse_url( home_url( add_query_arg( array(), $wp->request ) ), PHP_URL_PATH );
@@ -257,7 +257,7 @@ class Tracker {
 	 * Inject custom tracked GA4 events into page header.
 	 */
 	public function inject_custom_ga4_events() {
-		$saved_events = get_option( 'trackly_custom_events', array() );
+		$saved_events = get_option( 'metricpulse_custom_events', array() );
 		if ( empty( $saved_events ) ) {
 			return;
 		}
@@ -268,7 +268,7 @@ class Tracker {
 		}
 
 		?>
-		<!-- Trackly Custom GA4 Tracking Events -->
+		<!-- MetricPulse Custom GA4 Tracking Events -->
 		<script type="text/javascript">
 			document.addEventListener('DOMContentLoaded', function() {
 				const customEvents = <?php echo $json_events; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
@@ -286,7 +286,7 @@ class Tracker {
 						el.addEventListener('click', function() {
 							if (typeof gtag === 'function') {
 								gtag('event', item.event_name, {
-									'event_category': 'trackly_custom',
+									'event_category': 'metricpulse_custom',
 									'event_label': item.selector
 								});
 							}

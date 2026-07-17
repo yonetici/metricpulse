@@ -9,7 +9,7 @@
 	let heatmapActive = false;
 
 	$(document).ready(function() {
-		if (parseInt(tracklyPublicData.is_admin) === 1) {
+		if (parseInt(metricpulsePublicData.is_admin) === 1) {
 			initAdminFloatingPanel();
 		}
 	});
@@ -76,11 +76,11 @@
 	 */
 	function loadPageStats() {
 		$.ajax({
-			url: tracklyPublicData.rest_url + '/page-stats',
+			url: metricpulsePublicData.rest_url + '/page-stats',
 			method: 'GET',
-			data: { url: tracklyPublicData.page_url },
+			data: { url: metricpulsePublicData.page_url },
 			beforeSend: function(xhr) {
-				xhr.setRequestHeader('X-WP-Nonce', tracklyPublicData.rest_nonce);
+				xhr.setRequestHeader('X-WP-Nonce', metricpulsePublicData.rest_nonce);
 			},
 			success: function(res) {
 				if (res.success && res.report.rows && res.report.rows.length > 0) {
@@ -196,11 +196,11 @@
 	 */
 	function fetchHeatmapData() {
 		$.ajax({
-			url: tracklyPublicData.rest_url + '/clicks',
+			url: metricpulsePublicData.rest_url + '/clicks',
 			method: 'GET',
-			data: { url: tracklyPublicData.page_url },
+			data: { url: metricpulsePublicData.page_url },
 			beforeSend: function(xhr) {
-				xhr.setRequestHeader('X-WP-Nonce', tracklyPublicData.rest_nonce);
+				xhr.setRequestHeader('X-WP-Nonce', metricpulsePublicData.rest_nonce);
 			},
 			success: function(res) {
 				if (res.success && res.clicks.length > 0) {
@@ -271,14 +271,14 @@
 	 */
 	function startSelectorMode() {
 		isSelectorMode = true;
-		window.tracklySelectorModeActive = true; // Block click tracker global logging
+		window.metricpulseSelectorModeActive = true; // Block click tracker global logging
 		$('#trackly-stats-panel').removeClass('active');
 
 		$('body').css('cursor', 'crosshair');
 
-		$(document).on('mouseover.tracklySelector', handleSelectorMouseOver);
-		$(document).on('mouseout.tracklySelector', handleSelectorMouseOut);
-		$(document).on('click.tracklySelector', handleSelectorClick);
+		$(document).on('mouseover.metricpulseSelector', handleSelectorMouseOver);
+		$(document).on('mouseout.metricpulseSelector', handleSelectorMouseOut);
+		$(document).on('click.metricpulseSelector', handleSelectorClick);
 	}
 
 	function handleSelectorMouseOver(e) {
@@ -300,7 +300,7 @@
 		e.preventDefault();
 		e.stopPropagation();
 
-		const selector = window.tracklyGetUniqueSelector(e.target);
+		const selector = window.metricpulseGetUniqueSelector(e.target);
 		$(e.target).removeClass('trackly-selector-hovered');
 		exitSelectorMode();
 
@@ -320,12 +320,12 @@
 
 	function exitSelectorMode() {
 		isSelectorMode = false;
-		window.tracklySelectorModeActive = false; // Re-enable click tracker
+		window.metricpulseSelectorModeActive = false; // Re-enable click tracker
 		$('body').css('cursor', 'default');
 		
-		$(document).off('mouseover.tracklySelector');
-		$(document).off('mouseout.tracklySelector');
-		$(document).off('click.tracklySelector');
+		$(document).off('mouseover.metricpulseSelector');
+		$(document).off('mouseout.metricpulseSelector');
+		$(document).off('click.metricpulseSelector');
 	}
 
 
@@ -349,7 +349,7 @@
 		}
 
 		$.ajax({
-			url: tracklyPublicData.rest_url + '/save-event',
+			url: metricpulsePublicData.rest_url + '/save-event',
 			method: 'POST',
 			contentType: 'application/json',
 			data: JSON.stringify({
@@ -357,7 +357,7 @@
 				event_name: eventName
 			}),
 			beforeSend: function(xhr) {
-				xhr.setRequestHeader('X-WP-Nonce', tracklyPublicData.rest_nonce);
+				xhr.setRequestHeader('X-WP-Nonce', metricpulsePublicData.rest_nonce);
 			},
 			success: function(res) {
 				if (res.success) {

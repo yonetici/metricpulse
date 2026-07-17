@@ -1,5 +1,5 @@
 <?php
-namespace Trackly\Includes;
+namespace MetricPulse\Includes;
 
 /**
  * Facade class for Database operations.
@@ -15,23 +15,23 @@ class Database {
 	/**
 	 * Cached instance of EventRepository (Step 4: Singleton Pattern)
 	 */
-	private static ?\Trackly\Includes\Repository\EventRepository $repository = null;
+	private static ?\MetricPulse\Includes\Repository\EventRepository $repository = null;
 
 	/**
 	 * Set a custom repository instance for mocking and dependency injection (Step 2: Testability / DI)
 	 */
-	public static function set_repository( \Trackly\Includes\Repository\EventRepository $repository ): void {
+	public static function set_repository( \MetricPulse\Includes\Repository\EventRepository $repository ): void {
 		self::$repository = $repository;
 	}
 
 	/**
 	 * Get an instance of EventRepository.
 	 */
-	private static function get_repository(): \Trackly\Includes\Repository\EventRepository {
+	private static function get_repository(): \MetricPulse\Includes\Repository\EventRepository {
 		if ( self::$repository === null ) {
 			global $wpdb;
-			$table_name = $wpdb->prefix . 'trackly_clicks';
-			self::$repository = new \Trackly\Includes\Repository\EventRepository( $wpdb, $table_name );
+			$table_name = $wpdb->prefix . 'metricpulse_clicks';
+			self::$repository = new \MetricPulse\Includes\Repository\EventRepository( $wpdb, $table_name );
 		}
 		return self::$repository;
 	}
@@ -40,9 +40,9 @@ class Database {
 	 * Initialize hooks.
 	 */
 	public static function init(): void {
-		add_action( 'trackly_daily_cleanup', array( __CLASS__, 'daily_cleanup' ) );
-		add_action( 'trackly_weekly_ip_refresh', array( 'Trackly\Includes\ProxyRegistry', 'refresh_cf_ips' ) );
-		add_filter( 'cron_schedules', array( 'Trackly\Includes\ProxyRegistry', 'add_cron_intervals' ) );
+		add_action( 'metricpulse_daily_cleanup', array( __CLASS__, 'daily_cleanup' ) );
+		add_action( 'metricpulse_weekly_ip_refresh', array( 'MetricPulse\Includes\ProxyRegistry', 'refresh_cf_ips' ) );
+		add_filter( 'cron_schedules', array( 'MetricPulse\Includes\ProxyRegistry', 'add_cron_intervals' ) );
 	}
 
 	/**
@@ -60,10 +60,10 @@ class Database {
 		$repo->create_tables();
 
 		// Database upgrade manager (Step 5: DB Versioning)
-		$current_version = get_option( 'trackly_db_version', '0.0.0' );
-		if ( version_compare( $current_version, TRACKLY_VERSION, '<' ) ) {
+		$current_version = get_option( 'metricpulse_db_version', '0.0.0' );
+		if ( version_compare( $current_version, METRICPULSE_VERSION, '<' ) ) {
 			$repo->upgrade( $current_version );
-			update_option( 'trackly_db_version', TRACKLY_VERSION );
+			update_option( 'metricpulse_db_version', METRICPULSE_VERSION );
 		}
 	}
 
@@ -105,11 +105,11 @@ class Database {
 	 * Schedule the 30-day cleanup and weekly IP refresh cron jobs.
 	 */
 	public static function schedule_cleanup(): void {
-		if ( ! wp_next_scheduled( 'trackly_daily_cleanup' ) ) {
-			wp_schedule_event( time(), 'daily', 'trackly_daily_cleanup' );
+		if ( ! wp_next_scheduled( 'metricpulse_daily_cleanup' ) ) {
+			wp_schedule_event( time(), 'daily', 'metricpulse_daily_cleanup' );
 		}
-		if ( ! wp_next_scheduled( 'trackly_weekly_ip_refresh' ) ) {
-			wp_schedule_event( time() + 60, 'weekly', 'trackly_weekly_ip_refresh' );
+		if ( ! wp_next_scheduled( 'metricpulse_weekly_ip_refresh' ) ) {
+			wp_schedule_event( time() + 60, 'weekly', 'metricpulse_weekly_ip_refresh' );
 		}
 	}
 
@@ -117,8 +117,8 @@ class Database {
 	 * Unschedule cleanup and IP refresh cron jobs securely (Step 3: Unschedule duplicates).
 	 */
 	public static function unschedule_cleanup(): void {
-		wp_clear_scheduled_hook( 'trackly_daily_cleanup' );
-		wp_clear_scheduled_hook( 'trackly_weekly_ip_refresh' );
+		wp_clear_scheduled_hook( 'metricpulse_daily_cleanup' );
+		wp_clear_scheduled_hook( 'metricpulse_weekly_ip_refresh' );
 	}
 
 	/**

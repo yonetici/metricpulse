@@ -1,12 +1,12 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use Trackly\Includes\Database;
+use MetricPulse\Includes\Database;
 
 class TestDatabase extends TestCase {
 
 	public function test_get_table_name() {
 		$table_name = Database::get_table_name();
-		$this->assertEquals( 'wp_trackly_clicks', $table_name );
+		$this->assertEquals( 'wp_metricpulse_clicks', $table_name );
 	}
 
 	public function test_log_click() {
@@ -24,7 +24,7 @@ class TestDatabase extends TestCase {
 		$this->assertTrue( $result );
 
 		// Verify Mock_WPDB captured the correct insert parameters
-		$this->assertEquals( 'wp_trackly_clicks', $wpdb->last_insert['table'] );
+		$this->assertEquals( 'wp_metricpulse_clicks', $wpdb->last_insert['table'] );
 		$this->assertEquals( 'https://example.com/test', $wpdb->last_insert['data']['page_url'] );
 		$this->assertEquals( 'button', $wpdb->last_insert['data']['element_tag'] );
 		$this->assertEquals( '#submit-btn', $wpdb->last_insert['data']['element_selector'] );
@@ -34,7 +34,7 @@ class TestDatabase extends TestCase {
 
 	public function test_mock_repository_injection() {
 		// Mock the EventRepository (Step 2: Injection / Mockability)
-		$mock_repo = $this->createMock( \Trackly\Includes\Repository\EventRepository::class );
+		$mock_repo = $this->createMock( \MetricPulse\Includes\Repository\EventRepository::class );
 		$mock_repo->expects( $this->once() )
 			->method( 'log_click' )
 			->with( array( 'page_url' => 'http://injected-test.com' ) )

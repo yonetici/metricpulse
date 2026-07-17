@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Trackly\Includes\Repository;
+namespace MetricPulse\Includes\Repository;
 
-use Trackly\Includes\Exception\TracklyException;
+use MetricPulse\Includes\Exception\MetricPulseException;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -36,7 +36,7 @@ class EventRepository {
 	public function create_tables(): void {
 		// Strict table name regex checking to eliminate any SQL injection vector on identifier placeholders
 		if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $this->table_name ) ) {
-			throw new \Trackly\Includes\Exception\TracklyException( 'Invalid database table configuration.' );
+			throw new \MetricPulse\Includes\Exception\MetricPulseException( 'Invalid database table configuration.' );
 		}
 
 		$table_name = $this->table_name;
@@ -83,7 +83,7 @@ class EventRepository {
 
 	public function log_click( array $data ): bool {
 		// Filter raw click data before saving (Step 2: Custom Extensibility Hooks)
-		$data = apply_filters( 'trackly_before_log_click', $data );
+		$data = apply_filters( 'metricpulse_before_log_click', $data );
 		if ( empty( $data ) || ! is_array( $data ) ) {
 			return false;
 		}
@@ -104,7 +104,7 @@ class EventRepository {
 
 		if ( $result ) {
 			// Trigger action after telemetry insertion
-			do_action( 'trackly_after_log_click', $this->wpdb->insert_id, $insert_data );
+			do_action( 'metricpulse_after_log_click', $this->wpdb->insert_id, $insert_data );
 		}
 
 		return (bool) $result;
@@ -129,7 +129,7 @@ class EventRepository {
 		$results = is_array( $results ) ? $results : array();
 
 		// Filter retrieved click data (Step 2: Custom Extensibility Hooks)
-		return apply_filters( 'trackly_clicks_for_page', $results, $page_url );
+		return apply_filters( 'metricpulse_clicks_for_page', $results, $page_url );
 	}
 
 	/**
@@ -139,7 +139,7 @@ class EventRepository {
 		// Acquire a genuinely atomic lock: add_option performs an INSERT that fails if the row
 		// already exists, so only one concurrent process can win. (get_option + update_option is
 		// NOT atomic — two workers can both pass the check.)
-		if ( ! \Trackly\Includes\Database::acquire_lock( 'trackly_cleanup_lock', 600 ) ) {
+		if ( ! \MetricPulse\Includes\Database::acquire_lock( 'metricpulse_cleanup_lock', 600 ) ) {
 			return; // Another cleanup is already running / ran recently.
 		}
 
@@ -165,7 +165,7 @@ class EventRepository {
 				usleep( 50000 );
 			}
 		} finally {
-			\Trackly\Includes\Database::release_lock( 'trackly_cleanup_lock' );
+			\MetricPulse\Includes\Database::release_lock( 'metricpulse_cleanup_lock' );
 		}
 	}
 
@@ -175,7 +175,7 @@ class EventRepository {
 	 */
 	public function upgrade( string $from_version ): void {
 		if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $this->table_name ) ) {
-			throw new \Trackly\Includes\Exception\TracklyException( 'Invalid database table configuration.' );
+			throw new \MetricPulse\Includes\Exception\MetricPulseException( 'Invalid database table configuration.' );
 		}
 		// Future version-specific migrations go here. Indexes are ensured on every create_tables().
 		$this->ensure_indexes();

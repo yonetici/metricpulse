@@ -1,6 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use Trackly\Includes\Service\HeatmapService;
+use MetricPulse\Includes\Service\HeatmapService;
 
 /**
  * Unit tests for the standard-deviation anomaly engine.

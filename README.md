@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/yonetici/metricpulse/actions/workflows/lint.yml"><img src="https://github.com/yonetici/metricpulse/actions/workflows/lint.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/yonetici/datametric-analytics-heatmaps/actions/workflows/lint.yml"><img src="https://github.com/yonetici/datametric-analytics-heatmaps/actions/workflows/lint.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/WordPress-6.0%E2%80%937.0-21759b.svg" alt="WordPress 6.0–7.0">
   <img src="https://img.shields.io/badge/PHP-8.1%2B-777bb4.svg" alt="PHP 8.1+">
   <img src="https://img.shields.io/badge/license-GPLv2%2B-blue.svg" alt="License GPLv2+">
@@ -55,7 +55,7 @@
 
 ## 📦 Installation
 
-1. Download the latest plugin ZIP (build it with `python3 bin/minify.py` then zip the `datametric-analytics-heatmaps/` folder, or grab it from the [Releases](https://github.com/yonetici/metricpulse/releases) page).
+1. Download the latest plugin ZIP (build it with `python3 bin/minify.py` then zip the `datametric-analytics-heatmaps/` folder, or grab it from the [Releases](https://github.com/yonetici/datametric-analytics-heatmaps/releases) page).
 2. In WordPress, go to **Plugins → Add New → Upload Plugin**, choose the ZIP, and activate.
 3. Open **DataMetric** in the admin menu. It starts in **Demo Mode** so you can explore immediately.
 4. To connect real data, follow the [Installation & GA4 setup guide](docs/INSTALL.md).

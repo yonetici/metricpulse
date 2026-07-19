@@ -21,12 +21,12 @@ jobs:
 
       - name: Syntax Check (PHP Lint)
         run: |
-          find metricpulse -name "*.php" -exec php -l {} \;
+          find datametric-analytics-heatmaps -name "*.php" -exec php -l {} \;
 
       - name: Install Dependencies
-        working-directory: metricpulse
+        working-directory: datametric-analytics-heatmaps
         run: composer install --no-interaction --prefer-dist
 
       - name: Run PHPUnit Tests
-        working-directory: metricpulse
+        working-directory: datametric-analytics-heatmaps
         run: vendor/bin/phpunit

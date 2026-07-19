@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  📣 <strong><a href="https://www.ridvanbilgin.com/2026/07/datametric-wordpress-ga4-analytics-plugin.html">Read the introduction post →</a></strong>
+  📣 <strong><a href="https://www.ridvanbilgin.com/2026/07/ga4-dashboard-heatmap-plugin-wordpress.html">Read the introduction post →</a></strong>
 </p>
 
 ---

@@ -979,6 +979,16 @@ class Admin {
 	 * REST Callback to retrieve clicks.
 	 */
 	public function get_clicks_callback( $request ) {
+		// In Demo Mode (the default until a GA4 property is configured) serve a representative
+		// demo heatmap so the full experience is available without recording real clicks.
+		if ( \DataMetric\Includes\Api::is_demo_mode() ) {
+			return new WP_REST_Response( array(
+				'success' => true,
+				'clicks'  => $this->get_demo_clicks(),
+				'demo'    => true,
+			), 200 );
+		}
+
 		$url = esc_url_raw( $request->get_param( 'url' ) );
 		if ( empty( $url ) ) {
 			return new WP_REST_Response( array( 'success' => false, 'error' => __( 'URL parameter required.', 'datametric-analytics-heatmaps' ) ), 400 );
@@ -990,6 +1000,44 @@ class Admin {
 			'success' => true,
 			'clicks'  => $clicks,
 		), 200 );
+	}
+
+	/**
+	 * Build a deterministic set of demo click coordinates arranged in realistic hotspots
+	 * (menu, hero CTA, content, sidebar, footer). Used to populate the heatmap in Demo Mode.
+	 *
+	 * @return array<int,array<string,mixed>> Click rows shaped like real records (percentage coordinates).
+	 */
+	private function get_demo_clicks() {
+		// Cluster centers: [x%, y%, count]. Mimics where visitors typically click on a page.
+		$centers = array(
+			array( 50, 8, 16 ),   // top navigation / menu bar
+			array( 50, 34, 15 ),  // hero call-to-action
+			array( 28, 57, 12 ),  // primary content column
+			array( 74, 52, 10 ),  // sidebar / widgets
+			array( 50, 90, 11 ),  // footer links
+		);
+
+		// Deterministic PRNG (fixed seed) so the demo heatmap looks natural but stays stable.
+		$seed = 1337;
+		$rand = function ( $min, $max ) use ( &$seed ) {
+			$seed = ( $seed * 1103515245 + 12345 ) & 0x7fffffff;
+			return $min + ( $seed % 1000 ) / 1000 * ( $max - $min );
+		};
+
+		$clicks = array();
+		foreach ( $centers as $c ) {
+			list( $cx, $cy, $count ) = $c;
+			for ( $i = 0; $i < $count; $i++ ) {
+				$clicks[] = array(
+					'click_x_pct'      => round( max( 2, min( 98, $cx + $rand( -9, 9 ) ) ), 2 ),
+					'click_y_pct'      => round( max( 2, min( 98, $cy + $rand( -6, 6 ) ) ), 2 ),
+					'element_tag'      => 'a',
+					'element_selector' => 'demo',
+				);
+			}
+		}
+		return $clicks;
 	}
 
 	/**

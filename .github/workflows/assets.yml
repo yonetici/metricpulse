@@ -1,17 +1,19 @@
-name: Update WordPress.org assets & readme
+name: Update WordPress.org assets
 
-# Syncs the plugin's assets (banner, icon, screenshots) and readme.txt to the
-# WordPress.org SVN /assets and /trunk WITHOUT bumping the version — so screenshot
-# or documentation changes don't trigger a plugin "update available" for users.
+# Syncs ONLY the /assets directory (banner, icon, screenshots) to the
+# WordPress.org SVN — no version bump, no trunk changes — so swapping marketing
+# images never creates an "update available" notification for users.
 #
-# Runs automatically when assets/ or the readme change on main, or on demand.
+# NOTE: adding/removing screenshots also needs their caption lines in readme.txt,
+# which reaches WordPress.org with the next versioned release (deploy.yml). This
+# workflow is for updating the images themselves.
+#
 # Requires the repository secrets WPORG_SVN_USERNAME and WPORG_SVN_PASSWORD.
 on:
   push:
     branches: [main]
     paths:
       - 'assets/**'
-      - 'datametric-analytics-heatmaps/readme.txt'
   workflow_dispatch:
 
 jobs:
@@ -21,15 +23,39 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # The asset-update action expects readme.txt at the repo root; our canonical
-      # copy lives in the plugin folder, so stage it at the root for this run only.
-      - name: Stage readme at repo root
-        run: cp datametric-analytics-heatmaps/readme.txt readme.txt
-
-      - name: Update assets & readme on WordPress.org
-        uses: 10up/action-wordpress-plugin-asset-update@stable
+      - name: Sync /assets to WordPress.org SVN
         env:
           SVN_USERNAME: ${{ secrets.WPORG_SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.WPORG_SVN_PASSWORD }}
           SLUG: datametric-analytics-heatmaps
-          ASSETS_DIR: assets
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq && sudo apt-get install -y -qq subversion
+
+          SVN_URL="https://plugins.svn.wordpress.org/${SLUG}"
+          SVNFLAGS="--non-interactive --no-auth-cache --username ${SVN_USERNAME} --password ${SVN_PASSWORD}"
+
+          # Sparse-checkout only the assets directory (fast).
+          svn checkout --depth empty $SVNFLAGS "$SVN_URL" svn-repo
+          svn update --set-depth infinity $SVNFLAGS svn-repo/assets
+
+          # Mirror local assets into the working copy (removes files no longer present).
+          rsync -a --delete --exclude='.svn' assets/ svn-repo/assets/
+
+          cd svn-repo
+          # Stage additions and deletions for SVN.
+          svn add --force assets --auto-props --parents -q || true
+          svn status assets | awk '/^!/{ $1=""; sub(/^ +/,""); print }' | while IFS= read -r f; do
+            [ -n "$f" ] && svn delete --force "$f" -q || true
+          done
+          # Correct mime-types for images (best practice for the .org CDN).
+          find assets -type f -name '*.png' -exec svn propset svn:mime-type image/png {} + 2>/dev/null || true
+
+          echo "=== svn status ==="
+          svn status assets || true
+          if svn status assets | grep -q .; then
+            svn commit assets -m "Update WordPress.org assets" $SVNFLAGS
+            echo "Assets committed."
+          else
+            echo "No asset changes to commit."
+          fi

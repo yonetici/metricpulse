@@ -28,15 +28,18 @@ jobs:
       # for a custom BUILD_DIR.
       - name: Prepare clean build
         run: |
+          # NOTE: exclude patterns are ANCHORED with a leading slash so they match only at the
+          # plugin root. An unanchored 'vendor/' would also drop Admin/js/vendor/ (ApexCharts),
+          # which the dashboard needs.
           rsync -a --delete \
-            --exclude='tests/' \
-            --exclude='phpunit.xml' \
-            --exclude='composer.json' \
-            --exclude='composer.lock' \
-            --exclude='package.json' \
-            --exclude='package-lock.json' \
-            --exclude='node_modules/' \
-            --exclude='vendor/' \
+            --exclude='/tests/' \
+            --exclude='/phpunit.xml' \
+            --exclude='/composer.json' \
+            --exclude='/composer.lock' \
+            --exclude='/package.json' \
+            --exclude='/package-lock.json' \
+            --exclude='/node_modules/' \
+            --exclude='/vendor/' \
             --exclude='.distignore' \
             --exclude='.phpunit.result.cache' \
             --exclude='.DS_Store' \

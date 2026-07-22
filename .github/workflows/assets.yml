@@ -1,0 +1,35 @@
+name: Update WordPress.org assets & readme
+
+# Syncs the plugin's assets (banner, icon, screenshots) and readme.txt to the
+# WordPress.org SVN /assets and /trunk WITHOUT bumping the version — so screenshot
+# or documentation changes don't trigger a plugin "update available" for users.
+#
+# Runs automatically when assets/ or the readme change on main, or on demand.
+# Requires the repository secrets WPORG_SVN_USERNAME and WPORG_SVN_PASSWORD.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'assets/**'
+      - 'datametric-analytics-heatmaps/readme.txt'
+  workflow_dispatch:
+
+jobs:
+  assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # The asset-update action expects readme.txt at the repo root; our canonical
+      # copy lives in the plugin folder, so stage it at the root for this run only.
+      - name: Stage readme at repo root
+        run: cp datametric-analytics-heatmaps/readme.txt readme.txt
+
+      - name: Update assets & readme on WordPress.org
+        uses: 10up/action-wordpress-plugin-asset-update@stable
+        env:
+          SVN_USERNAME: ${{ secrets.WPORG_SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.WPORG_SVN_PASSWORD }}
+          SLUG: datametric-analytics-heatmaps
+          ASSETS_DIR: assets

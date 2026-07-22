@@ -90,8 +90,10 @@ Yes. The Event Builder maps clicks to GA4 events via gtag. Your site must alread
 
 == Screenshots ==
 
-1. The main administrative analytics dashboard displaying GA4 report statistics and interactive charts.
-2. Glassmorphic front-end client overlay displaying page-level analytics and click heatmap overlays.
+1. The main analytics dashboard: realtime active visitors plus KPI cards for pageviews, unique visitors, sessions, engagement rate, bounce rate and average session duration.
+2. Traffic sources and device distribution charts, with the source/medium acquisition breakdown table.
+3. Settings: Google Analytics 4 integration with Demo Mode, strict cookie-consent, GA4 Property ID and Service Account credentials.
+4. The visitor traffic trend chart over the selected reporting window (7 or 30 days).
 
 == Privacy Policy ==
 
